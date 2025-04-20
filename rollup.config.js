@@ -9,13 +9,10 @@ export default [
       format: 'iife',
       name: 'Lib',
       globals: {
-        'lightweight-charts': 'LightweightCharts'
+        '@mrtruongleo/lightweight-charts': 'LightweightCharts',
       },
     },
-    external: ['lightweight-charts'],
-    plugins: [
-      typescript(),
-      terser(),
-    ],
+    external: ['@mrtruongleo/lightweight-charts'],
+    plugins: [typescript(), terser()],
   },
 ];

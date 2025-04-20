@@ -1,5 +1,6 @@
 docs/build/**
 venv/
+env/
 .ipynb_checkpoints/
 __pycache__/
 build/

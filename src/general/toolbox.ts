@@ -1,180 +1,203 @@
-import { DrawingTool } from "../drawing/drawing-tool";
-import { TrendLine } from "../trend-line/trend-line";
-import { Box } from "../box/box";
-import { Drawing } from "../drawing/drawing";
-import { ContextMenu } from "../context-menu/context-menu";
-import { GlobalParams } from "./global-params";
-import { IChartApi, ISeriesApi, SeriesType } from "lightweight-charts";
-import { HorizontalLine } from "../horizontal-line/horizontal-line";
-import { RayLine } from "../horizontal-line/ray-line";
-import { VerticalLine } from "../vertical-line/vertical-line";
+import {
+  IChartApi,
+  ISeriesApi,
+  SeriesType,
+} from '@mrtruongleo/lightweight-charts';
 
-
-interface Icon {
-    div: HTMLDivElement,
-    group: SVGGElement,
-    type: new (...args: any[]) => Drawing
+declare global {
+  interface Window {
+    callbackFunction: (action: string) => void;
+    fibHandler?: (
+      x: number,
+      y: number,
+      series?: ISeriesApi<SeriesType>
+    ) => void;
+    fibShowHide?: () => void;
+  }
 }
 
-declare const window: GlobalParams
+import { Drawing } from './drawing';
+
+export function getDrawingMenu(id: string): HTMLElement {
+  const menu = document.createElement('div');
+  menu.id = `drawing-menu-${id}`;
+  return menu;
+}
 
 export class ToolBox {
-    private static readonly TREND_SVG: string = '<rect x="3.84" y="13.67" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -5.9847 14.4482)" width="21.21" height="1.56"/><path d="M23,3.17L20.17,6L23,8.83L25.83,6L23,3.17z M23,7.41L21.59,6L23,4.59L24.41,6L23,7.41z"/><path d="M6,20.17L3.17,23L6,25.83L8.83,23L6,20.17z M6,24.41L4.59,23L6,21.59L7.41,23L6,24.41z"/>';
-    private static readonly HORZ_SVG: string = '<rect x="4" y="14" width="9" height="1"/><rect x="16" y="14" width="9" height="1"/><path d="M11.67,14.5l2.83,2.83l2.83-2.83l-2.83-2.83L11.67,14.5z M15.91,14.5l-1.41,1.41l-1.41-1.41l1.41-1.41L15.91,14.5z"/>';
-    private static readonly RAY_SVG: string = '<rect x="8" y="14" width="17" height="1"/><path d="M3.67,14.5l2.83,2.83l2.83-2.83L6.5,11.67L3.67,14.5z M7.91,14.5L6.5,15.91L5.09,14.5l1.41-1.41L7.91,14.5z"/>';
-    private static readonly BOX_SVG: string = '<rect x="8" y="6" width="12" height="1"/><rect x="9" y="22" width="11" height="1"/><path d="M3.67,6.5L6.5,9.33L9.33,6.5L6.5,3.67L3.67,6.5z M7.91,6.5L6.5,7.91L5.09,6.5L6.5,5.09L7.91,6.5z"/><path d="M19.67,6.5l2.83,2.83l2.83-2.83L22.5,3.67L19.67,6.5z M23.91,6.5L22.5,7.91L21.09,6.5l1.41-1.41L23.91,6.5z"/><path d="M19.67,22.5l2.83,2.83l2.83-2.83l-2.83-2.83L19.67,22.5z M23.91,22.5l-1.41,1.41l-1.41-1.41l1.41-1.41L23.91,22.5z"/><path d="M3.67,22.5l2.83,2.83l2.83-2.83L6.5,19.67L3.67,22.5z M7.91,22.5L6.5,23.91L5.09,22.5l1.41-1.41L7.91,22.5z"/><rect x="22" y="9" width="1" height="11"/><rect x="6" y="9" width="1" height="11"/>';
-    private static readonly VERT_SVG: string = ToolBox.RAY_SVG;
+  public div: HTMLDivElement;
+  private _commandFunctions: Function[];
 
-    div: HTMLDivElement;
-    private activeIcon: Icon | null = null;
+  public drawingMenu: HTMLElement;
+  private chart: IChartApi;
+  private series: ISeriesApi<SeriesType>;
+  private _drawingBox: HTMLElement | undefined;
+  private _drawing: Drawing | undefined;
 
-    private buttons: HTMLDivElement[] = [];
+  private buttons: Record<string, HTMLElement> = {};
 
-    private _commandFunctions: Function[];
-    private _handlerID: string;
+  constructor(
+    id: string,
+    chart: IChartApi,
+    series: ISeriesApi<SeriesType>,
+    commandFunctions: Function[]
+  ) {
+    this._commandFunctions = commandFunctions;
+    this.chart = chart;
+    this.series = series;
 
-    private _drawingTool: DrawingTool;
+    this.div = document.createElement('div');
+    this.div.classList.add('toolbox');
+    this.div.style.overflow = 'hidden';
 
-    constructor(handlerID: string, chart: IChartApi, series: ISeriesApi<SeriesType>, commandFunctions: Function[]) {
-        this._handlerID = handlerID;
-        this._commandFunctions = commandFunctions;
-        this._drawingTool = new DrawingTool(chart, series, () => this.removeActiveAndSave());
-        this.div = this._makeToolBox()
-        new ContextMenu(this.saveDrawings, this._drawingTool);
+    // Drawing menu init
+    this.drawingMenu = getDrawingMenu(id);
+    this.drawingMenu.classList.add('drawing-menu');
+    this.drawingMenu.classList.add(`dm-${id}`);
+    this.drawingMenu.style.display = 'none';
+    this.div.appendChild(this.drawingMenu);
 
-        commandFunctions.push((event: KeyboardEvent) => {
-            if ((event.metaKey || event.ctrlKey) && event.code === 'KeyZ') {
-                const drawingToDelete = this._drawingTool.drawings.pop();
-                if (drawingToDelete) this._drawingTool.delete(drawingToDelete)
-                return true;
-            }
-            return false;
-        });
-    }
+    // Buttons init
+    this.addCloseButton();
+    this.addSettingsButton();
+    this.addDrawingButton();
+    this.addMagnetButton();
+    this.addScreenshotButton();
+    // this.addVolumeButton();
 
-    toJSON() {
-        // Exclude the chart attribute from serialization
-        const { ...serialized} = this;
-        return serialized;
-    }
+    this.addDrawingBox();
+  }
 
-    private _makeToolBox() {
-        let div = document.createElement('div')
-        div.classList.add('toolbox');
-        this.buttons.push(this._makeToolBoxElement(TrendLine, 'KeyT', ToolBox.TREND_SVG))
-        this.buttons.push(this._makeToolBoxElement(HorizontalLine, 'KeyH', ToolBox.HORZ_SVG));
-        this.buttons.push(this._makeToolBoxElement(RayLine, 'KeyR', ToolBox.RAY_SVG));
-        this.buttons.push(this._makeToolBoxElement(Box, 'KeyB', ToolBox.BOX_SVG));
-        this.buttons.push(this._makeToolBoxElement(VerticalLine, 'KeyV', ToolBox.VERT_SVG, true));
-        for (const button of this.buttons) {
-            div.appendChild(button);
-        }
-        return div
-    }
+  public toJSON() {
+    const { _drawing, _drawingBox, chart, drawingMenu, series, ...rest } = this;
+    return rest;
+  }
 
-    private _makeToolBoxElement(DrawingType: new (...args: any[]) => Drawing, keyCmd: string, paths: string, rotate=false) {
-        const elem = document.createElement('div')
-        elem.classList.add("toolbox-button");
+  private addCloseButton() {
+    let button = document.createElement('i');
+    button.classList.add('fas', 'fa-times');
+    button.setAttribute('data-tool', 'close');
+    button.style.color = 'red';
+    button.addEventListener('click', () => {
+      window.callbackFunction('chart_close');
+    });
+    this.div.appendChild(button);
+    this.buttons['close'] = button;
+  }
 
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("width", "29");
-        svg.setAttribute("height", "29");
+  private addSettingsButton() {
+    let button = document.createElement('i');
+    button.classList.add('fas', 'fa-cog');
+    button.setAttribute('data-tool', 'settings');
+    button.addEventListener('click', () => {
+      window.callbackFunction('chart_settings');
+    });
+    this.div.appendChild(button);
+    this.buttons['settings'] = button;
+  }
 
-        const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        group.innerHTML = paths
-        group.setAttribute("fill", window.pane.color)
+  private addDrawingButton() {
+    let button = document.createElement('i');
+    button.classList.add('fas', 'fa-pen');
+    button.setAttribute('data-tool', 'drawing');
+    button.addEventListener('click', () => {
+      const drawingMenu = this.drawingMenu;
+      if (drawingMenu.style.display == 'none') {
+        drawingMenu.style.display = 'flex';
+      } else {
+        drawingMenu.style.display = 'none';
+      }
+    });
+    this.div.appendChild(button);
+    this.buttons['drawing'] = button;
+  }
 
-        svg.appendChild(group)
-        elem.appendChild(svg);
+  private addMagnetButton() {
+    let button = document.createElement('i');
+    button.classList.add('fas', 'fa-magnet');
+    button.setAttribute('data-tool', 'magnet');
+    button.addEventListener('click', () => {
+      window.callbackFunction('chart_magnet');
+    });
+    this.div.appendChild(button);
+    this.buttons['magnet'] = button;
+  }
 
-        const icon: Icon = {div: elem, group: group, type: DrawingType}
+  private addScreenshotButton() {
+    let button = document.createElement('i');
+    button.classList.add('fas', 'fa-camera');
+    button.setAttribute('data-tool', 'screenshot');
+    button.addEventListener('click', () => {
+      window.callbackFunction('chart_screenshot');
+    });
+    this.div.appendChild(button);
+    this.buttons['screenshot'] = button;
+  }
 
-        elem.addEventListener('click', () => this._onIconClick(icon));
+  private addVolumeButton() {
+    let button = document.createElement('i');
+    button.classList.add('fas', 'fa-chart-bar');
+    button.setAttribute('data-tool', 'volume');
+    button.addEventListener('click', () => {
+      window.callbackFunction('chart_volume');
+    });
+    this.div.appendChild(button);
+    this.buttons['volume'] = button;
+  }
 
-        this._commandFunctions.push((event: KeyboardEvent) => {
-            if (this._handlerID !== window.handlerInFocus) return false;
+  private addDrawingBox() {
+    const div = (this._drawingBox = document.createElement('div'));
+    div.id = 'drawing-box';
 
-            if (event.altKey && event.code === keyCmd) {
-                event.preventDefault()
-                this._onIconClick(icon);
-                return true
-            }
-            return false;
-        })
+    const button = document.createElement('button');
+    button.textContent = 'Fib Drawing';
+    button.id = 'fib-button';
+    button.addEventListener('click', () => {
+      this.createFibDrawing();
+      // @ts-ignore
+      window.toggleDrawing('fib-button');
+    });
 
-        if (rotate == true) {
-            svg.style.transform = 'rotate(90deg)';
-            svg.style.transformBox = 'fill-box';
-            svg.style.transformOrigin = 'center';
-        }
+    div.appendChild(button);
+    this.div.appendChild(div);
+  }
 
-        return elem
-    }
+  private createFibDrawing() {
+    if (this._drawing) return;
 
-    private _onIconClick(icon: Icon) {
-        if (this.activeIcon) {
+    this._drawing = new Drawing(this.chart);
+    const drawing = this._drawing;
 
-            this.activeIcon.div.classList.remove('active-toolbox-button');
-            window.setCursor('crosshair');
-            this._drawingTool?.stopDrawing()
-            if (this.activeIcon === icon) {
-                this.activeIcon = null
-                return 
-            }
-        }
-        this.activeIcon = icon
-        this.activeIcon.div.classList.add('active-toolbox-button')
-        window.setCursor('crosshair');
-        this._drawingTool?.beginDrawing(this.activeIcon.type);
-    }
+    // add to command function
+    this._commandFunctions.push((event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        this.endDrawing();
+        return true;
+      }
+      return false;
+    });
 
-    removeActiveAndSave = () => {
-        window.setCursor('default');
-        if (this.activeIcon) this.activeIcon.div.classList.remove('active-toolbox-button')
-        this.activeIcon = null
-        this.saveDrawings()
-    }
+    // add to subscribe event
+    let subscription: ((range: any) => void) | null = () => {
+      drawing.updateGeometry();
+    };
 
-    addNewDrawing(d: Drawing) {
-        this._drawingTool.addNewDrawing(d);
-    }
+    this.chart.timeScale().subscribeVisibleLogicalRangeChange(subscription);
 
-    clearDrawings() {
-        this._drawingTool.clearDrawings();
-    }
+    // check global points
+    const handler = (x: number, y: number, series = this.series) => {
+      drawing.addPoint(x, y);
+    };
 
-    saveDrawings = () => {
-        const drawingMeta = []
-        for (const d of this._drawingTool.drawings) {
-            drawingMeta.push({
-                type: d._type,
-                points: d.points,
-                options: d._options
-            });
-        }
-        const string = JSON.stringify(drawingMeta);
-        window.callbackFunction(`save_drawings${this._handlerID}_~_${string}`)
-    }
+    window.fibHandler = handler;
+    window.fibShowHide = this.endDrawing.bind(this);
+  }
 
-    loadDrawings(drawings: any[]) { // TODO any
-        drawings.forEach((d) => {
-            switch (d.type) {
-                case "Box":
-                    this._drawingTool.addNewDrawing(new Box(d.points[0], d.points[1], d.options));
-                    break;
-                case "TrendLine":
-                    this._drawingTool.addNewDrawing(new TrendLine(d.points[0], d.points[1], d.options));
-                    break;
-                case "HorizontalLine":
-                    this._drawingTool.addNewDrawing(new HorizontalLine(d.points[0], d.options));
-                    break;
-                case "RayLine":
-                    this._drawingTool.addNewDrawing(new RayLine(d.points[0], d.options));
-                    break;
-                case "VerticalLine":
-                    this._drawingTool.addNewDrawing(new VerticalLine(d.points[0], d.options));
-                    break;
-            }
-        })
-    }
+  private endDrawing() {
+    // @ts-ignore
+    window.toggleDrawing();
+    if (!this._drawing) return;
+    this._drawing = undefined;
+    window.fibHandler = undefined;
+  }
 }
