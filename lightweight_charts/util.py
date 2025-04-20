@@ -39,7 +39,7 @@ def parse_event_message(window, string):
 def js_data(data: Union[pd.DataFrame, pd.Series]):
     if isinstance(data, pd.DataFrame):
         d = data.to_dict(orient='records')
-        filtered_records = [{k: v for k, v in record.items() if v is not None and not pd.isna(v)} for record in d]
+        filtered_records = [{k: v if not pd.isna(v) else None for k, v in record.items()} for record in d]
     else:
         d = data.to_dict()
         filtered_records = {k: v for k, v in d.items()}
@@ -65,6 +65,8 @@ def jbool(b: bool): return 'true' if b is True else 'false' if b is False else N
 
 
 LINE_STYLE = Literal['solid', 'dotted', 'dashed', 'large_dashed', 'sparse_dotted']
+
+LINE_TYPE = Literal['Simple','WithSteps','Curved','WithGaps']
 
 MARKER_POSITION = Literal['above', 'below', 'inside']
 

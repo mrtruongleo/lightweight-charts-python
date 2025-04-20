@@ -12,7 +12,7 @@ from .drawings import Box, HorizontalLine, RayLine, TrendLine, TwoPointDrawing, 
 from .topbar import TopBar
 from .util import (
     BulkRunScript, Pane, Events, IDGen, as_enum, jbool, js_json, TIME, NUM, FLOAT,
-    LINE_STYLE, MARKER_POSITION, MARKER_SHAPE, CROSSHAIR_MODE,
+    LINE_STYLE, LINE_TYPE,  MARKER_POSITION, MARKER_SHAPE, CROSSHAIR_MODE,
     PRICE_SCALE_MODE, marker_position, marker_shape, js_data,
 )
 
@@ -436,6 +436,7 @@ class Line(SeriesCommon):
                     color: '{color}',
                     lineStyle: {as_enum(style, LINE_STYLE)},
                     lineWidth: {width},
+                    lintType: {as_enum(LINE_TYPE)},
                     lastValueVisible: {jbool(price_label)},
                     priceLineVisible: {jbool(price_line)},
                     crosshairMarkerVisible: {jbool(crosshair_marker)},
