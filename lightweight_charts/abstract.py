@@ -436,7 +436,7 @@ class Line(SeriesCommon):
                     color: '{color}',
                     lineStyle: {as_enum(style, LINE_STYLE)},
                     lineWidth: {width},
-                    lintType: {as_enum(LINE_TYPE)},
+                    lintType: {as_enum('WithGaps',LINE_TYPE)},
                     lastValueVisible: {jbool(price_label)},
                     priceLineVisible: {jbool(price_line)},
                     crosshairMarkerVisible: {jbool(crosshair_marker)},
