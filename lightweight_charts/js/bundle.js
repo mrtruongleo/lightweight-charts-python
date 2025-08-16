@@ -1,1 +1,1662 @@
-var Lib=function(t,e){"use strict";const i={backgroundColor:"#0c0d0f",hoverBackgroundColor:"#3c434c",clickBackgroundColor:"#50565E",activeBackgroundColor:"rgba(0, 122, 255, 0.7)",mutedBackgroundColor:"rgba(0, 122, 255, 0.3)",borderColor:"#3C434C",color:"#d8d9db",activeColor:"#ececed"};function s(){window.pane={...i},window.containerDiv=document.getElementById("container")||document.createElement("div"),window.setCursor=t=>{t&&(window.cursor=t),document.body.style.cursor=window.cursor},window.cursor="default",window.textBoxFocused=!1}class o{handler;div;seriesContainer;ohlcEnabled=!1;percentEnabled=!1;linesEnabled=!1;colorBasedOnCandle=!1;text;candle;_lines=[];constructor(t){this.legendHandler=this.legendHandler.bind(this),this.handler=t,this.ohlcEnabled=!1,this.percentEnabled=!1,this.linesEnabled=!1,this.colorBasedOnCandle=!1,this.div=document.createElement("div"),this.div.classList.add("legend"),this.div.style.maxWidth=100*t.scale.width-8+"vw",this.div.style.display="none";const e=document.createElement("div");e.style.display="flex",e.style.flexDirection="row",this.seriesContainer=document.createElement("div"),this.seriesContainer.classList.add("series-container"),this.text=document.createElement("span"),this.text.style.lineHeight="1.8",this.candle=document.createElement("div"),e.appendChild(this.seriesContainer),this.div.appendChild(this.text),this.div.appendChild(this.candle),this.div.appendChild(e),t.div.appendChild(this.div),t.chart.subscribeCrosshairMove(this.legendHandler)}toJSON(){const{_lines:t,handler:e,...i}=this;return i}makeSeriesRow(t,e){const i="#FFF";let s=`\n    <path style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:${i};stroke-opacity:1;stroke-miterlimit:4;" d="M 21.998437 12 C 21.998437 12 18.998437 18 12 18 C 5.001562 18 2.001562 12 2.001562 12 C 2.001562 12 5.001562 6 12 6 C 18.998437 6 21.998437 12 21.998437 12 Z M 21.998437 12 " transform="matrix(0.833333,0,0,0,0.833333,0,0)"/>\n    <path style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:${i};stroke-opacity:1;stroke-miterlimit:4;" d="M 15 12 C 15 13.654687 13.654687 15 12 15 C 10.345312 15 9 13.654687 9 12 C 9 10.345312 10.345312 9 12 9 C 13.654687 9 15 10.345312 15 12 Z M 15 12 " transform="matrix(0.833333,0,0,0,0.833333,0,0)"/>\`\n    `,o=`\n    <path style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:${i};stroke-opacity:1;stroke-miterlimit:4;" d="M 20.001562 9 C 20.001562 9 19.678125 9.665625 18.998437 10.514062 M 12 14.001562 C 10.392187 14.001562 9.046875 13.589062 7.95 12.998437 M 12 14.001562 C 13.607812 14.001562 14.953125 13.589062 16.05 12.998437 M 12 14.001562 L 12 17.498437 M 3.998437 9 C 3.998437 9 4.354687 9.735937 5.104687 10.645312 M 7.95 12.998437 L 5.001562 15.998437 M 7.95 12.998437 C 6.689062 12.328125 5.751562 11.423437 5.104687 10.645312 M 16.05 12.998437 L 18.501562 15.998437 M 16.05 12.998437 C 17.38125 12.290625 18.351562 11.320312 18.998437 10.514062 M 5.104687 10.645312 L 2.001562 12 M 18.998437 10.514062 L 21.998437 12 " transform="matrix(0.833333,0,0,0,0.833333,0,0)"/>\n    `,n=document.createElement("div");n.style.display="flex",n.style.alignItems="center";let r=document.createElement("div"),a=document.createElement("div");a.classList.add("legend-toggle-switch");let l=document.createElementNS("http://www.w3.org/2000/svg","svg");l.setAttribute("width","22"),l.setAttribute("height","16");let h=document.createElementNS("http://www.w3.org/2000/svg","g");h.innerHTML=s;let d=!0;a.addEventListener("click",(()=>{d?(d=!1,h.innerHTML=o,e.applyOptions({visible:!1})):(d=!0,e.applyOptions({visible:!0}),h.innerHTML=s)})),l.appendChild(h),a.appendChild(l),n.appendChild(r),n.appendChild(a),this.seriesContainer.appendChild(n);const c=e.options(),u="color"in c&&"string"==typeof c.color?c.color:"#000";this._lines.push({name:t,div:r,row:n,toggle:a,series:e,solid:u.startsWith("rgba")?u.replace(/[^,]+(?=\))/,"1"):u})}legendItemFormat(t,e){return t.toFixed(e).toString().padStart(8," ")}shorthandFormat(t){const e=Math.abs(t);return e>=1e6?(t/1e6).toFixed(1)+"M":e>=1e3?(t/1e3).toFixed(1)+"K":t.toString().padStart(8," ")}legendHandler(t,e=!1){if(!this.ohlcEnabled&&!this.linesEnabled&&!this.percentEnabled)return;const i=this.handler.series.options();if(!t.time)return this.candle.style.color="transparent",void(this.candle.innerHTML=this.candle.innerHTML.replace(i.upColor,"").replace(i.downColor,""));let s,o=null;if(e){const e=this.handler.chart.timeScale();let i=e.timeToCoordinate(t.time);null!==i&&(o=e.coordinateToLogical(i)),null!==o&&(s=this.handler.series.dataByIndex(o))}else s=t.seriesData.get(this.handler.series);this.candle.style.color="";let n='<span style="line-height: 1.8;">';if(s){if(this.ohlcEnabled&&(n+=`O ${this.legendItemFormat(s.open,this.handler.precision)} `,n+=`| H ${this.legendItemFormat(s.high,this.handler.precision)} `,n+=`| L ${this.legendItemFormat(s.low,this.handler.precision)} `,n+=`| C ${this.legendItemFormat(s.close,this.handler.precision)} `),this.percentEnabled){let t=(s.close-s.open)/s.open*100,e=t>0?i.upColor:i.downColor,o=`${t>=0?"+":""}${t.toFixed(2)} %`;this.colorBasedOnCandle?n+=`| <span style="color: ${e};">${o}</span>`:n+="| "+o}if(this.handler.volumeSeries){let e;e=null!==o?this.handler.volumeSeries.dataByIndex(o):t.seriesData.get(this.handler.volumeSeries),e&&(n+=this.ohlcEnabled?`<br>V ${this.shorthandFormat(e.value)}`:"")}}this.candle.innerHTML=n+"</span>",this._lines.forEach((i=>{if(!this.linesEnabled)return void(i.row.style.display="none");let s,n;if(i.row.style.display="flex",s=e&&null!==o?i.series.dataByIndex(o):t.seriesData.get(i.series),s?.value){if("Histogram"==i.series.seriesType())n=this.shorthandFormat(s.value);else{const t=i.series.options().priceFormat;n="precision"in t?this.legendItemFormat(s.value,t.precision):s.value.toString()}i.div.innerHTML=`<span style="color: ${i.solid};">▨</span>    ${i.name} : ${n}`}}))}}let n=class{chart;data;container;lines;fibLevel;constructor(t){this.chart=t,this.data={point1:null,point2:null},this.container=document.createElement("div"),this.lines={},this.fibLevel=[0,.236,.382,.5,.618,.786,1,1.618,2.618];for(let t=0;t<this.fibLevel.length;t++)this.lines[t]=document.createElement("div"),this.container.appendChild(this.lines[t]);this.container.className="fibdrawer";const e=this.chart.chartElement().parentElement;e&&e.appendChild(this.container)}addPoint(t,e){const i={x:t,y:e};this.data.point1?(this.data.point2=i,this.updateGeometry()):this.data.point1=i}updateGeometry(){if(!this.data.point1||!this.data.point2)return;const t=this.data.point1,e=this.data.point2;let i=Math.min(t.y,e.y),s=Math.max(t.y,e.y);const o=(s-i)/8;this.container.style.left="0px",this.container.style.width="100%",this.container.style.top=i+"px",this.container.style.height=s-i+"px";for(let t=0;t<this.fibLevel.length;t++){const e=Math.round(o*t),i=this.fibLevel[t];this.lines[t].style.bottom=`calc(100% - ${e}px)`,this.lines[t].style.width="100%",this.lines[t].style.height="1px",this.lines[t].style.position="absolute",this.lines[t].style.borderTop="1px dotted white",this.lines[t].style.zIndex="5",this.lines[t].innerHTML=`<span style="position: absolute; left: 0; top: 0;">${i}</span><span style="position: absolute; right: 0; top: 0;">${i}</span>`}}destroy(){this.container.remove()}};function r(t){const e=document.createElement("div");return e.id=`drawing-menu-${t}`,e}class a{div;_commandFunctions;drawingMenu;chart;series;_drawingBox;_drawing;buttons={};constructor(t,e,i,s){this._commandFunctions=s,this.chart=e,this.series=i,this.div=document.createElement("div"),this.div.classList.add("toolbox"),this.div.style.overflow="hidden",this.drawingMenu=r(t),this.drawingMenu.classList.add("drawing-menu"),this.drawingMenu.classList.add(`dm-${t}`),this.drawingMenu.style.display="none",this.div.appendChild(this.drawingMenu),this.addCloseButton(),this.addSettingsButton(),this.addDrawingButton(),this.addMagnetButton(),this.addScreenshotButton(),this.addDrawingBox()}toJSON(){const{_drawing:t,_drawingBox:e,chart:i,drawingMenu:s,series:o,...n}=this;return n}addCloseButton(){let t=document.createElement("i");t.classList.add("fas","fa-times"),t.setAttribute("data-tool","close"),t.style.color="red",t.addEventListener("click",(()=>{window.callbackFunction("chart_close")})),this.div.appendChild(t),this.buttons.close=t}addSettingsButton(){let t=document.createElement("i");t.classList.add("fas","fa-cog"),t.setAttribute("data-tool","settings"),t.addEventListener("click",(()=>{window.callbackFunction("chart_settings")})),this.div.appendChild(t),this.buttons.settings=t}addDrawingButton(){let t=document.createElement("i");t.classList.add("fas","fa-pen"),t.setAttribute("data-tool","drawing"),t.addEventListener("click",(()=>{const t=this.drawingMenu;"none"==t.style.display?t.style.display="flex":t.style.display="none"})),this.div.appendChild(t),this.buttons.drawing=t}addMagnetButton(){let t=document.createElement("i");t.classList.add("fas","fa-magnet"),t.setAttribute("data-tool","magnet"),t.addEventListener("click",(()=>{window.callbackFunction("chart_magnet")})),this.div.appendChild(t),this.buttons.magnet=t}addScreenshotButton(){let t=document.createElement("i");t.classList.add("fas","fa-camera"),t.setAttribute("data-tool","screenshot"),t.addEventListener("click",(()=>{window.callbackFunction("chart_screenshot")})),this.div.appendChild(t),this.buttons.screenshot=t}addVolumeButton(){let t=document.createElement("i");t.classList.add("fas","fa-chart-bar"),t.setAttribute("data-tool","volume"),t.addEventListener("click",(()=>{window.callbackFunction("chart_volume")})),this.div.appendChild(t),this.buttons.volume=t}addDrawingBox(){const t=this._drawingBox=document.createElement("div");t.id="drawing-box";const e=document.createElement("button");e.textContent="Fib Drawing",e.id="fib-button",e.addEventListener("click",(()=>{this.createFibDrawing(),window.toggleDrawing("fib-button")})),t.appendChild(e),this.div.appendChild(t)}createFibDrawing(){if(this._drawing)return;this._drawing=new n(this.chart);const t=this._drawing;this._commandFunctions.push((t=>"Escape"===t.key&&(this.endDrawing(),!0)));this.chart.timeScale().subscribeVisibleLogicalRangeChange((()=>{t.updateGeometry()}));window.fibHandler=(e,i,s=this.series)=>{t.addPoint(e,i)},window.fibShowHide=this.endDrawing.bind(this)}endDrawing(){window.toggleDrawing(),this._drawing&&(this._drawing=void 0,window.fibHandler=void 0)}}class l{_div;constructor(t){const e=t.id;this._div=document.createElement("div"),this._div.id=`topbar-${e}`,this._div.classList.add("topbar");let i=document.createElement("button");i.innerHTML="&#x1F50D;",i.id=`search-button-${e}`,i.classList.add("search-button");let s=document.createElement("input");s.type="text",s.classList.add("search-input"),s.id=`search-input-${e}`,s.placeholder="Symbol",s.addEventListener("focus",(()=>window.textBoxFocused=!0)),s.addEventListener("blur",(()=>window.textBoxFocused=!1)),s.addEventListener("keydown",(t=>{"Enter"===t.key&&window.callbackFunction(`search${e}_~_${s.value}`)})),i.addEventListener("click",(()=>{window.callbackFunction(`search${e}_~_${s.value}`)}));const o=document.createElement("div");o.id=`timeframe-div-${e}`,o.classList.add("timeframe-div");const n=document.createElement("select");n.id=`timeframe-select-${e}`,n.classList.add("timeframe-select");["1m","5m","15m","30m","1h","2h","4h","1d","1w","1M"].forEach((t=>{const e=document.createElement("option");e.value=t,e.text=t,n.appendChild(e)})),n.addEventListener("change",(()=>{const t=n.value;window.callbackFunction(`timeframe${e}_~_${t}`)})),o.appendChild(n),this._div.appendChild(s),this._div.appendChild(i),this._div.appendChild(o)}toJSON(){return{}}}s();function h(t){if(void 0===t)throw new Error("Value is undefined");return t}class d{_chart=void 0;_series=void 0;requestUpdate(){this._requestUpdate&&this._requestUpdate()}_requestUpdate;attached({chart:t,series:e,requestUpdate:i}){this._chart=t,this._series=e,this._series.subscribeDataChanged(this._fireDataUpdated),this._requestUpdate=i,this.requestUpdate()}detached(){this._chart=void 0,this._series=void 0,this._requestUpdate=void 0}get chart(){return h(this._chart)}get series(){return h(this._series)}_fireDataUpdated(t){this.dataUpdated&&this.dataUpdated(t)}}const c={lineColor:"#1E80F0",lineStyle:e.LineStyle.Solid,width:4};var u;!function(t){t[t.NONE=0]="NONE",t[t.HOVERING=1]="HOVERING",t[t.DRAGGING=2]="DRAGGING",t[t.DRAGGINGP1=3]="DRAGGINGP1",t[t.DRAGGINGP2=4]="DRAGGINGP2",t[t.DRAGGINGP3=5]="DRAGGINGP3",t[t.DRAGGINGP4=6]="DRAGGINGP4"}(u||(u={}));class p extends d{_paneViews=[];_options;_points=[];_state=u.NONE;_startDragPoint=null;_latestHoverPoint=null;static _mouseIsDown=!1;static hoveredObject=null;static lastHoveredObject=null;_listeners=[];constructor(t){super(),this._options={...c,...t}}updateAllViews(){this._paneViews.forEach((t=>t.update()))}paneViews(){return this._paneViews}applyOptions(t){this._options={...this._options,...t},this.requestUpdate()}updatePoints(...t){for(let e=0;e<this.points.length;e++)null!=t[e]&&(this.points[e]=t[e]);this.requestUpdate()}detach(){this._options.lineColor="transparent",this.requestUpdate(),this.series.detachPrimitive(this);for(const t of this._listeners)document.body.removeEventListener(t.name,t.listener)}get points(){return this._points}_subscribe(t,e){document.body.addEventListener(t,e),this._listeners.push({name:t,listener:e})}_unsubscribe(t,e){document.body.removeEventListener(t,e);const i=this._listeners.find((i=>i.name===t&&i.listener===e));this._listeners.splice(this._listeners.indexOf(i),1)}_handleHoverInteraction(t){if(this._latestHoverPoint=t.point,p._mouseIsDown)this._handleDragInteraction(t);else if(this._mouseIsOverDrawing(t)){if(this._state!=u.NONE)return;this._moveToState(u.HOVERING),p.hoveredObject=p.lastHoveredObject=this}else{if(this._state==u.NONE)return;this._moveToState(u.NONE),p.hoveredObject===this&&(p.hoveredObject=null)}}static _eventToPoint(t,e){if(!e||!t.point||!t.logical)return null;const i=e.coordinateToPrice(t.point.y);return null==i?null:{time:t.time||null,logical:t.logical,price:i.valueOf()}}static _getDiff(t,e){return{logical:t.logical-e.logical,price:t.price-e.price}}_addDiffToPoint(t,e,i){t&&(t.logical=t.logical+e,t.price=t.price+i,t.time=this.series.dataByIndex(t.logical)?.time||null)}_handleMouseDownInteraction=()=>{p._mouseIsDown=!0,this._onMouseDown()};_handleMouseUpInteraction=()=>{p._mouseIsDown=!1,this._moveToState(u.HOVERING)};_handleDragInteraction(t){if(this._state!=u.DRAGGING&&this._state!=u.DRAGGINGP1&&this._state!=u.DRAGGINGP2&&this._state!=u.DRAGGINGP3&&this._state!=u.DRAGGINGP4)return;const e=p._eventToPoint(t,this.series);if(!e)return;this._startDragPoint=this._startDragPoint||e;const i=p._getDiff(e,this._startDragPoint);this._onDrag(i),this.requestUpdate(),this._startDragPoint=e}}class _{_options;constructor(t){this._options=t}}class m extends _{_p1;_p2;_hovered;constructor(t,e,i,s){super(i),this._p1=t,this._p2=e,this._hovered=s}_getScaledCoordinates(t){return null===this._p1.x||null===this._p1.y||null===this._p2.x||null===this._p2.y?null:{x1:Math.round(this._p1.x*t.horizontalPixelRatio),y1:Math.round(this._p1.y*t.verticalPixelRatio),x2:Math.round(this._p2.x*t.horizontalPixelRatio),y2:Math.round(this._p2.y*t.verticalPixelRatio)}}_drawEndCircle(t,e,i){t.context.fillStyle="#000",t.context.beginPath(),t.context.arc(e,i,9,0,2*Math.PI),t.context.stroke(),t.context.fill()}}function w(t,i){const s={[e.LineStyle.Solid]:[],[e.LineStyle.Dotted]:[t.lineWidth,t.lineWidth],[e.LineStyle.Dashed]:[2*t.lineWidth,2*t.lineWidth],[e.LineStyle.LargeDashed]:[6*t.lineWidth,6*t.lineWidth],[e.LineStyle.SparseDotted]:[t.lineWidth,4*t.lineWidth]}[i];t.setLineDash(s)}class g extends _{_point={x:null,y:null};constructor(t,e){super(e),this._point=t}draw(t){t.useBitmapCoordinateSpace((t=>{if(null==this._point.y)return;const e=t.context,i=Math.round(this._point.y*t.verticalPixelRatio),s=this._point.x?this._point.x*t.horizontalPixelRatio:0;e.lineWidth=this._options.width,e.strokeStyle=this._options.lineColor,w(e,this._options.lineStyle),e.beginPath(),e.moveTo(s,i),e.lineTo(t.bitmapSize.width,i),e.stroke()}))}}class b{_source;constructor(t){this._source=t}}class y extends b{_p1={x:null,y:null};_p2={x:null,y:null};_source;constructor(t){super(t),this._source=t}update(){if(!this._source.p1||!this._source.p2)return;const t=this._source.series,e=t.priceToCoordinate(this._source.p1.price),i=t.priceToCoordinate(this._source.p2.price),s=this._getX(this._source.p1),o=this._getX(this._source.p2);this._p1={x:s,y:e},this._p2={x:o,y:i}}_getX(t){return this._source.chart.timeScale().logicalToCoordinate(t.logical)}}class v extends b{_source;_point={x:null,y:null};constructor(t){super(t),this._source=t}update(){const t=this._source._point,e=this._source.chart.timeScale(),i=this._source.series;"RayLine"==this._source._type&&(this._point.x=t.time?e.timeToCoordinate(t.time):e.logicalToCoordinate(t.logical)),this._point.y=i.priceToCoordinate(t.price)}renderer(){return new g(this._point,this._source._options)}}class x{_source;_y=null;_price=null;constructor(t){this._source=t}update(){if(!this._source.series||!this._source._point)return;this._y=this._source.series.priceToCoordinate(this._source._point.price);const t=this._source.series.options().priceFormat.precision;this._price=this._source._point.price.toFixed(t).toString()}visible(){return!0}tickVisible(){return!0}coordinate(){return this._y??0}text(){return this._source._options.text||this._price||""}textColor(){return"white"}backColor(){return this._source._options.lineColor}}class f extends p{_type="HorizontalLine";_paneViews;_point;_callbackName;_priceAxisViews;_startDragPoint=null;constructor(t,e,i=null){super(e),this._point=t,this._point.time=null,this._paneViews=[new v(this)],this._priceAxisViews=[new x(this)],this._callbackName=i}get points(){return[this._point]}updatePoints(...t){for(const e of t)e&&(this._point.price=e.price);this.requestUpdate()}updateAllViews(){this._paneViews.forEach((t=>t.update())),this._priceAxisViews.forEach((t=>t.update()))}priceAxisViews(){return this._priceAxisViews}_moveToState(t){switch(t){case u.NONE:document.body.style.cursor="default",this._unsubscribe("mousedown",this._handleMouseDownInteraction);break;case u.HOVERING:document.body.style.cursor="pointer",this._unsubscribe("mouseup",this._childHandleMouseUpInteraction),this._subscribe("mousedown",this._handleMouseDownInteraction),this.chart.applyOptions({handleScroll:!0});break;case u.DRAGGING:document.body.style.cursor="grabbing",this._subscribe("mouseup",this._childHandleMouseUpInteraction),this.chart.applyOptions({handleScroll:!1})}this._state=t}_onDrag(t){this._addDiffToPoint(this._point,0,t.price),this.requestUpdate()}_mouseIsOverDrawing(t,e=4){if(!t.point)return!1;const i=this.series.priceToCoordinate(this._point.price);return!!i&&Math.abs(i-t.point.y)<e}_onMouseDown(){this._startDragPoint=null;if(this._latestHoverPoint)return this._moveToState(u.DRAGGING)}_childHandleMouseUpInteraction=()=>{this._handleMouseUpInteraction(),this._callbackName&&window.callbackFunction(`${this._callbackName}_~_${this._point.price.toFixed(8)}`)}}class C extends _{_point={x:null,y:null};constructor(t,e){super(e),this._point=t}draw(t){t.useBitmapCoordinateSpace((t=>{if(null==this._point.x)return;const e=t.context,i=this._point.x*t.horizontalPixelRatio;e.lineWidth=this._options.width,e.strokeStyle=this._options.lineColor,w(e,this._options.lineStyle),e.beginPath(),e.moveTo(i,0),e.lineTo(i,t.bitmapSize.height),e.stroke()}))}}class G extends b{_source;_point={x:null,y:null};constructor(t){super(t),this._source=t}update(){const t=this._source._point,e=this._source.chart.timeScale(),i=this._source.series;this._point.x=t.time?e.timeToCoordinate(t.time):e.logicalToCoordinate(t.logical),this._point.y=i.priceToCoordinate(t.price)}renderer(){return new C(this._point,this._source._options)}}class D{_source;_x=null;constructor(t){this._source=t}update(){if(!this._source.chart||!this._source._point)return;const t=this._source._point,e=this._source.chart.timeScale();this._x=t.time?e.timeToCoordinate(t.time):e.logicalToCoordinate(t.logical)}visible(){return!!this._source._options.text}tickVisible(){return!0}coordinate(){return this._x??0}text(){return this._source._options.text||""}textColor(){return"white"}backColor(){return this._source._options.lineColor}}class S extends m{constructor(t,e,i,s){super(t,e,i,s)}draw(t){t.useBitmapCoordinateSpace((t=>{const e=t.context,i=this._getScaledCoordinates(t);if(!i)return;e.lineWidth=this._options.width,e.strokeStyle=this._options.lineColor,w(e,this._options.lineStyle),e.fillStyle=this._options.fillColor;const s=Math.min(i.x1,i.x2),o=Math.min(i.y1,i.y2),n=Math.abs(i.x1-i.x2),r=Math.abs(i.y1-i.y2);e.strokeRect(s,o,n,r),e.fillRect(s,o,n,r),this._hovered&&(this._drawEndCircle(t,s,o),this._drawEndCircle(t,s+n,o),this._drawEndCircle(t,s+n,o+r),this._drawEndCircle(t,s,o+r))}))}}class E extends y{constructor(t){super(t)}renderer(){return new S(this._p1,this._p2,this._source._options,this._source.hovered)}}class k extends p{_paneViews=[];_hovered=!1;constructor(t,e,i){super(),this.points.push(t),this.points.push(e),this._options={...c,...i}}setFirstPoint(t){this.updatePoints(t)}setSecondPoint(t){this.updatePoints(null,t)}get p1(){return this.points[0]}get p2(){return this.points[1]}get hovered(){return this._hovered}}const M={fillEnabled:!0,fillColor:"rgba(255, 255, 255, 0.2)",...c};class I extends m{constructor(t,e,i,s){super(t,e,i,s)}draw(t){t.useBitmapCoordinateSpace((t=>{if(null===this._p1.x||null===this._p1.y||null===this._p2.x||null===this._p2.y)return;const e=t.context,i=this._getScaledCoordinates(t);i&&(e.lineWidth=this._options.width,e.strokeStyle=this._options.lineColor,w(e,this._options.lineStyle),e.beginPath(),e.moveTo(i.x1,i.y1),e.lineTo(i.x2,i.y2),e.stroke(),this._hovered&&(this._drawEndCircle(t,i.x1,i.y1),this._drawEndCircle(t,i.x2,i.y2)))}))}}class L extends y{constructor(t){super(t)}renderer(){return new I(this._p1,this._p2,this._source._options,this._source.hovered)}}return t.Box=class extends k{_type="Box";constructor(t,e,i){super(t,e,i),this._options={...M,...i},this._paneViews=[new E(this)]}_moveToState(t){switch(t){case u.NONE:document.body.style.cursor="default",this._hovered=!1,this._unsubscribe("mousedown",this._handleMouseDownInteraction);break;case u.HOVERING:document.body.style.cursor="pointer",this._hovered=!0,this._unsubscribe("mouseup",this._handleMouseUpInteraction),this._subscribe("mousedown",this._handleMouseDownInteraction),this.chart.applyOptions({handleScroll:!0});break;case u.DRAGGINGP1:case u.DRAGGINGP2:case u.DRAGGINGP3:case u.DRAGGINGP4:case u.DRAGGING:document.body.style.cursor="grabbing",document.body.addEventListener("mouseup",this._handleMouseUpInteraction),this._subscribe("mouseup",this._handleMouseUpInteraction),this.chart.applyOptions({handleScroll:!1})}this._state=t}_onDrag(t){this._state!=u.DRAGGING&&this._state!=u.DRAGGINGP1||this._addDiffToPoint(this.p1,t.logical,t.price),this._state!=u.DRAGGING&&this._state!=u.DRAGGINGP2||this._addDiffToPoint(this.p2,t.logical,t.price),this._state!=u.DRAGGING&&(this._state==u.DRAGGINGP3&&(this._addDiffToPoint(this.p1,t.logical,0),this._addDiffToPoint(this.p2,0,t.price)),this._state==u.DRAGGINGP4&&(this._addDiffToPoint(this.p1,0,t.price),this._addDiffToPoint(this.p2,t.logical,0)))}_onMouseDown(){this._startDragPoint=null;const t=this._latestHoverPoint,e=this._paneViews[0]._p1,i=this._paneViews[0]._p2;if(!(e.x&&i.x&&e.y&&i.y))return this._moveToState(u.DRAGGING);const s=10;Math.abs(t.x-e.x)<s&&Math.abs(t.y-e.y)<s?this._moveToState(u.DRAGGINGP1):Math.abs(t.x-i.x)<s&&Math.abs(t.y-i.y)<s?this._moveToState(u.DRAGGINGP2):Math.abs(t.x-e.x)<s&&Math.abs(t.y-i.y)<s?this._moveToState(u.DRAGGINGP3):Math.abs(t.x-i.x)<s&&Math.abs(t.y-e.y)<s?this._moveToState(u.DRAGGINGP4):this._moveToState(u.DRAGGING)}_mouseIsOverDrawing(t,e=4){if(!t.point)return!1;const i=this._paneViews[0]._p1.x,s=this._paneViews[0]._p1.y,o=this._paneViews[0]._p2.x,n=this._paneViews[0]._p2.y;if(!(i&&o&&s&&n))return!1;const r=t.point.x,a=t.point.y,l=Math.min(i,o),h=Math.min(s,n),d=Math.abs(i-o),c=Math.abs(s-n),u=e/2;return r>l-u&&r<l+d+u&&a>h-u&&a<h+c+u}},t.Handler=class{id;commandFunctions=[];wrapper;div;chart;scale;precision=2;series;volumeSeries;legend;_topBar;toolBox;spinner;_seriesList=[];constructor(t,e,i,s,n){this.reSize=this.reSize.bind(this),this.id=t,this.scale={width:e,height:i},this.wrapper=document.createElement("div"),this.wrapper.classList.add("handler"),this.wrapper.style.float=s,this.div=document.createElement("div"),this.div.style.position="relative",this.wrapper.appendChild(this.div),window.containerDiv.append(this.wrapper),this.chart=this._createChart(),this.series=this.createCandlestickSeries(),this.volumeSeries=this.createVolumeSeries(),this.legend=new o(this),document.addEventListener("keydown",(t=>{for(let e=0;e<this.commandFunctions.length&&!this.commandFunctions[e](t);e++);})),window.handlerInFocus=this.id,this.wrapper.addEventListener("mouseover",(()=>window.handlerInFocus=this.id)),this.reSize(),n&&window.addEventListener("resize",(()=>this.reSize()))}reSize(){let t=0!==this.scale.height&&this._topBar?._div.offsetHeight||0;this.chart.resize(window.innerWidth*this.scale.width,window.innerHeight*this.scale.height-t),this.wrapper.style.width=100*this.scale.width+"%",this.wrapper.style.height=100*this.scale.height+"%",0===this.scale.height||0===this.scale.width?this.toolBox&&(this.toolBox.div.style.display="none"):this.toolBox&&(this.toolBox.div.style.display="flex")}_createChart(){const t={width:window.innerWidth*this.scale.width,height:window.innerHeight*this.scale.height,layout:{textColor:window.pane.color,background:{color:"#000000",type:e.ColorType.Solid},fontSize:12},rightPriceScale:{scaleMargins:{top:.3,bottom:.25}},timeScale:{timeVisible:!0,secondsVisible:!1},crosshair:{mode:e.CrosshairMode.Normal,vertLine:{labelBackgroundColor:"rgb(46, 46, 46)"},horzLine:{labelBackgroundColor:"rgb(55, 55, 55)"}},grid:{vertLines:{color:"rgba(29, 30, 38, 5)"},horzLines:{color:"rgba(29, 30, 58, 5)"}},handleScale:{axisPressedMouseMove:{time:!0,price:!0},mouseWheel:!0,pinch:!0},handleScroll:{horzTouchDrag:!0,vertTouchDrag:!0,mouseWheel:!0,pressedMouseMove:!0}};return e.createChart(this.div,t)}createCandlestickSeries(){const t="rgba(39, 157, 130, 100)",i="rgba(200, 97, 100, 100)",s={upColor:t,borderUpColor:t,wickUpColor:t,downColor:i,borderDownColor:i,wickDownColor:i},o=this.chart.addSeries(e.CandlestickSeries,s);return o.priceScale().applyOptions({scaleMargins:{top:.2,bottom:.2}}),o}createVolumeSeries(){const t=this.chart.addSeries(e.HistogramSeries,{color:"#26a69a",priceFormat:{type:"volume"},priceScaleId:"volume_scale"});return t.priceScale().applyOptions({scaleMargins:{top:.8,bottom:0}}),t}createLineSeries(t,i){const s=this.chart.addSeries(e.LineSeries,{...i});return this._seriesList.push(s),this.legend.makeSeriesRow(t,s),{name:t,series:s}}createHistogramSeries(t,i){const s=this.chart.addSeries(e.HistogramSeries,{...i});return this._seriesList.push(s),this.legend.makeSeriesRow(t,s),{name:t,series:s}}createToolBox(){this.toolBox=new a(this.id,this.chart,this.series,this.commandFunctions),this.div.appendChild(this.toolBox.div)}createTopBar(){return this._topBar=new l(this),this.wrapper.prepend(this._topBar._div),this._topBar}toJSON(){const{chart:t,...e}=this;return e}static syncCharts(t,e,i=!1){function s(t,e){e?(t.chart.setCrosshairPosition(e.value||e.close,e.time,t.series),t.legend.legendHandler(e,!0)):t.chart.clearCrosshairPosition()}function o(t,e){return e.time&&e.seriesData.get(t)||null}const n=t.chart.timeScale(),r=e.chart.timeScale(),a=t=>{t&&n.setVisibleLogicalRange(t)},l=t=>{t&&r.setVisibleLogicalRange(t)},h=i=>{s(e,o(t.series,i))},d=i=>{s(t,o(e.series,i))};let c=e;function u(t,e,s,o,n,r){t.wrapper.addEventListener("mouseover",(()=>{c!==t&&(c=t,e.chart.unsubscribeCrosshairMove(s),t.chart.subscribeCrosshairMove(o),i||(e.chart.timeScale().unsubscribeVisibleLogicalRangeChange(n),t.chart.timeScale().subscribeVisibleLogicalRangeChange(r)))}))}u(e,t,h,d,l,a),u(t,e,d,h,a,l),e.chart.subscribeCrosshairMove(d);const p=r.getVisibleLogicalRange();p&&n.setVisibleLogicalRange(p),i||e.chart.timeScale().subscribeVisibleLogicalRangeChange(a)}static makeSearchBox(t){const e=document.createElement("div");e.classList.add("searchbox"),e.style.display="none";const i=document.createElement("div");i.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><path style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:lightgray;stroke-opacity:1;stroke-miterlimit:4;" d="M 15 15 L 21 21 M 10 17 C 6.132812 17 3 13.867188 3 10 C 3 6.132812 6.132812 3 10 3 C 13.867188 3 17 6.132812 17 10 C 17 13.867188 13.867188 17 10 17 Z M 10 17 "/></svg>';const s=document.createElement("input");return s.type="text",e.appendChild(i),e.appendChild(s),t.div.appendChild(e),t.commandFunctions.push((i=>window.handlerInFocus===t.id&&!window.textBoxFocused&&("none"===e.style.display?!!/^[a-zA-Z0-9]$/.test(i.key)&&(e.style.display="flex",s.focus(),!0):("Enter"===i.key||"Escape"===i.key)&&("Enter"===i.key&&window.callbackFunction(`search${t.id}_~_${s.value}`),e.style.display="none",s.value="",!0)))),s.addEventListener("input",(()=>s.value=s.value.toUpperCase())),{window:e,box:s}}static makeSpinner(t){t.spinner=document.createElement("div"),t.spinner.classList.add("spinner"),t.wrapper.appendChild(t.spinner);let e=0;!function i(){t.spinner&&(e+=10,t.spinner.style.transform=`translate(-50%, -50%) rotate(${e}deg)`,requestAnimationFrame(i))}()}static _styleMap={"--bg-color":"backgroundColor","--hover-bg-color":"hoverBackgroundColor","--click-bg-color":"clickBackgroundColor","--active-bg-color":"activeBackgroundColor","--muted-bg-color":"mutedBackgroundColor","--border-color":"borderColor","--color":"color","--active-color":"activeColor"};static setRootStyles(t){const e=document.documentElement.style;for(const[i,s]of Object.entries(this._styleMap))e.setProperty(i,t[s])}},t.HorizontalLine=f,t.Legend=o,t.RayLine=class extends f{_type="RayLine";constructor(t,e){super({...t},e),this._point.time=t.time}updatePoints(...t){for(const e of t)e&&(this._point=e);this.requestUpdate()}_onDrag(t){this._addDiffToPoint(this._point,t.logical,t.price),this.requestUpdate()}_mouseIsOverDrawing(t,e=4){if(!t.point)return!1;const i=this.series.priceToCoordinate(this._point.price),s=this._point.time?this.chart.timeScale().timeToCoordinate(this._point.time):null;return!(!i||!s)&&(Math.abs(i-t.point.y)<e&&t.point.x>s-e)}},t.Table=class{_div;callbackName;borderColor;borderWidth;table;rows={};headings;widths;alignments;footer;header;constructor(t,e,i,s,o,n,r=!1,a,l,h,d,c){this._div=document.createElement("div"),this.callbackName=null,this.borderColor=l,this.borderWidth=h,r?(this._div.style.position="absolute",this._div.style.cursor="move"):(this._div.style.position="relative",this._div.style.float=n),this._div.style.zIndex="2000",this.reSize(t,e),this._div.style.display="flex",this._div.style.flexDirection="column",this._div.style.borderRadius="5px",this._div.style.color="white",this._div.style.fontSize="12px",this._div.style.fontVariantNumeric="tabular-nums",this.table=document.createElement("table"),this.table.style.width="100%",this.table.style.borderCollapse="collapse",this._div.style.overflow="hidden",this.headings=i,this.widths=s.map((t=>100*t+"%")),this.alignments=o;let u=this.table.createTHead().insertRow();for(let t=0;t<this.headings.length;t++){let e=document.createElement("th");e.textContent=this.headings[t],e.style.width=this.widths[t],e.style.letterSpacing="0.03rem",e.style.padding="0.2rem 0px",e.style.fontWeight="500",e.style.textAlign="center",0!==t&&(e.style.borderLeft=h+"px solid "+l),e.style.position="sticky",e.style.top="0",e.style.backgroundColor=c.length>0?c[t]:a,e.style.color=d[t],u.appendChild(e)}let p,_,m=document.createElement("div");if(m.style.overflowY="auto",m.style.overflowX="hidden",m.style.backgroundColor=a,m.appendChild(this.table),this._div.appendChild(m),window.containerDiv.appendChild(this._div),!r)return;let w=t=>{this._div.style.left=t.clientX-p+"px",this._div.style.top=t.clientY-_+"px"},g=()=>{document.removeEventListener("mousemove",w),document.removeEventListener("mouseup",g)};this._div.addEventListener("mousedown",(t=>{p=t.clientX-this._div.offsetLeft,_=t.clientY-this._div.offsetTop,document.addEventListener("mousemove",w),document.addEventListener("mouseup",g)}))}divToButton(t,e){t.addEventListener("mouseover",(()=>t.style.backgroundColor="rgba(60, 60, 60, 0.6)")),t.addEventListener("mouseout",(()=>t.style.backgroundColor="transparent")),t.addEventListener("mousedown",(()=>t.style.backgroundColor="rgba(60, 60, 60)")),t.addEventListener("click",(()=>window.callbackFunction(e))),t.addEventListener("mouseup",(()=>t.style.backgroundColor="rgba(60, 60, 60, 0.6)"))}newRow(t,e=!1){let i=this.table.insertRow();i.style.cursor="default";for(let s=0;s<this.headings.length;s++){let o=i.insertCell();o.style.width=this.widths[s],o.style.textAlign=this.alignments[s],o.style.border=this.borderWidth+"px solid "+this.borderColor,e&&this.divToButton(o,`${this.callbackName}_~_${t};;;${this.headings[s]}`)}e||this.divToButton(i,`${this.callbackName}_~_${t}`),this.rows[t]=i}deleteRow(t){this.table.deleteRow(this.rows[t].rowIndex),delete this.rows[t]}clearRows(){let t=Object.keys(this.rows).length;for(let e=0;e<t;e++)this.table.deleteRow(-1);this.rows={}}_getCell(t,e){return this.rows[t].cells[this.headings.indexOf(e)]}updateCell(t,e,i){this._getCell(t,e).textContent=i}styleCell(t,e,i,s){this._getCell(t,e).style[i]=s}makeSection(t,e,i,s=!1){let o=document.createElement("div");o.style.display="flex",o.style.width="100%",o.style.padding="3px 0px",o.style.backgroundColor="rgb(30, 30, 30)","footer"===e?this._div.appendChild(o):this._div.prepend(o);const n=[];for(let e=0;e<i;e++){let i=document.createElement("div");o.appendChild(i),i.style.flex="1",i.style.textAlign="center",s&&(this.divToButton(i,`${t}_~_${e}`),i.style.borderRadius="2px"),n.push(i)}"footer"===e?this.footer=n:this.header=n}reSize(t,e){this._div.style.width=t<=1?100*t+"%":t+"px",this._div.style.height=e<=1?100*e+"%":e+"px"}},t.ToolBox=a,t.TopBar=l,t.TrendLine=class extends k{_type="TrendLine";constructor(t,e,i){super(t,e,i),this._paneViews=[new L(this)]}_moveToState(t){switch(t){case u.NONE:document.body.style.cursor="default",this._hovered=!1,this.requestUpdate(),this._unsubscribe("mousedown",this._handleMouseDownInteraction);break;case u.HOVERING:document.body.style.cursor="pointer",this._hovered=!0,this.requestUpdate(),this._subscribe("mousedown",this._handleMouseDownInteraction),this._unsubscribe("mouseup",this._handleMouseDownInteraction),this.chart.applyOptions({handleScroll:!0});break;case u.DRAGGINGP1:case u.DRAGGINGP2:case u.DRAGGING:document.body.style.cursor="grabbing",this._subscribe("mouseup",this._handleMouseUpInteraction),this.chart.applyOptions({handleScroll:!1})}this._state=t}_onDrag(t){this._state!=u.DRAGGING&&this._state!=u.DRAGGINGP1||this._addDiffToPoint(this.p1,t.logical,t.price),this._state!=u.DRAGGING&&this._state!=u.DRAGGINGP2||this._addDiffToPoint(this.p2,t.logical,t.price)}_onMouseDown(){this._startDragPoint=null;const t=this._latestHoverPoint;if(!t)return;const e=this._paneViews[0]._p1,i=this._paneViews[0]._p2;if(!(e.x&&i.x&&e.y&&i.y))return this._moveToState(u.DRAGGING);Math.abs(t.x-e.x)<10&&Math.abs(t.y-e.y)<10?this._moveToState(u.DRAGGINGP1):Math.abs(t.x-i.x)<10&&Math.abs(t.y-i.y)<10?this._moveToState(u.DRAGGINGP2):this._moveToState(u.DRAGGING)}_mouseIsOverDrawing(t,e=4){if(!t.point)return!1;const i=this._paneViews[0]._p1.x,s=this._paneViews[0]._p1.y,o=this._paneViews[0]._p2.x,n=this._paneViews[0]._p2.y;if(!(i&&o&&s&&n))return!1;const r=t.point.x,a=t.point.y;if(r<=Math.min(i,o)-e||r>=Math.max(i,o)+e)return!1;return Math.abs((n-s)*r-(o-i)*a+o*s-n*i)/Math.sqrt((n-s)**2+(o-i)**2)<=e}},t.VerticalLine=class extends p{_type="VerticalLine";_paneViews;_timeAxisViews;_point;_callbackName;_startDragPoint=null;constructor(t,e,i=null){super(e),this._point=t,this._paneViews=[new G(this)],this._callbackName=i,this._timeAxisViews=[new D(this)]}updateAllViews(){this._paneViews.forEach((t=>t.update())),this._timeAxisViews.forEach((t=>t.update()))}timeAxisViews(){return this._timeAxisViews}updatePoints(...t){for(const e of t)e&&(!e.time&&e.logical&&(e.time=this.series.dataByIndex(e.logical)?.time||null),this._point=e);this.requestUpdate()}get points(){return[this._point]}_moveToState(t){switch(t){case u.NONE:document.body.style.cursor="default",this._unsubscribe("mousedown",this._handleMouseDownInteraction);break;case u.HOVERING:document.body.style.cursor="pointer",this._unsubscribe("mouseup",this._childHandleMouseUpInteraction),this._subscribe("mousedown",this._handleMouseDownInteraction),this.chart.applyOptions({handleScroll:!0});break;case u.DRAGGING:document.body.style.cursor="grabbing",this._subscribe("mouseup",this._childHandleMouseUpInteraction),this.chart.applyOptions({handleScroll:!1})}this._state=t}_onDrag(t){this._addDiffToPoint(this._point,t.logical,0),this.requestUpdate()}_mouseIsOverDrawing(t,e=4){if(!t.point)return!1;const i=this.chart.timeScale();let s;return s=this._point.time?i.timeToCoordinate(this._point.time):i.logicalToCoordinate(this._point.logical),!!s&&Math.abs(s-t.point.x)<e}_onMouseDown(){this._startDragPoint=null;if(this._latestHoverPoint)return this._moveToState(u.DRAGGING)}_childHandleMouseUpInteraction=()=>{this._handleMouseUpInteraction(),this._callbackName&&window.callbackFunction(`${this._callbackName}_~_${this._point.price.toFixed(8)}`)}},t.getDrawingMenu=r,t.globalParamInit=s,t.paneStyleDefault=i,t.setCursor=t=>{t&&(window.cursor=t),document.body.style.cursor=window.cursor},t}({},LightweightCharts);
+var Lib = (function (t, e) {
+  'use strict';
+  const i = {
+    backgroundColor: '#0c0d0f',
+    hoverBackgroundColor: '#3c434c',
+    clickBackgroundColor: '#50565E',
+    activeBackgroundColor: 'rgba(0, 122, 255, 0.7)',
+    mutedBackgroundColor: 'rgba(0, 122, 255, 0.3)',
+    borderColor: '#3C434C',
+    color: '#d8d9db',
+    activeColor: '#ececed',
+  };
+  function s() {
+    (window.pane = { ...i }),
+      (window.containerDiv =
+        document.getElementById('container') || document.createElement('div')),
+      (window.setCursor = (t) => {
+        t && (window.cursor = t), (document.body.style.cursor = window.cursor);
+      }),
+      (window.cursor = 'default'),
+      (window.textBoxFocused = !1);
+  }
+  class o {
+    handler;
+    div;
+    seriesContainer;
+    ohlcEnabled = !1;
+    percentEnabled = !1;
+    linesEnabled = !1;
+    colorBasedOnCandle = !1;
+    text;
+    candle;
+    _lines = [];
+    constructor(t) {
+      (this.legendHandler = this.legendHandler.bind(this)),
+        (this.handler = t),
+        (this.ohlcEnabled = !1),
+        (this.percentEnabled = !1),
+        (this.linesEnabled = !1),
+        (this.colorBasedOnCandle = !1),
+        (this.div = document.createElement('div')),
+        this.div.classList.add('legend'),
+        (this.div.style.maxWidth = 100 * t.scale.width - 8 + 'vw'),
+        (this.div.style.display = 'none');
+      const e = document.createElement('div');
+      (e.style.display = 'flex'),
+        (e.style.flexDirection = 'row'),
+        (this.seriesContainer = document.createElement('div')),
+        this.seriesContainer.classList.add('series-container'),
+        (this.text = document.createElement('span')),
+        (this.text.style.lineHeight = '1.8'),
+        (this.candle = document.createElement('div')),
+        e.appendChild(this.seriesContainer),
+        this.div.appendChild(this.text),
+        this.div.appendChild(this.candle),
+        this.div.appendChild(e),
+        t.div.appendChild(this.div),
+        t.chart.subscribeCrosshairMove(this.legendHandler);
+    }
+    toJSON() {
+      const { _lines: t, handler: e, ...i } = this;
+      return i;
+    }
+    makeSeriesRow(t, e) {
+      const i = '#FFF';
+      let s = `\n    <path style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:${i};stroke-opacity:1;stroke-miterlimit:4;" d="M 21.998437 12 C 21.998437 12 18.998437 18 12 18 C 5.001562 18 2.001562 12 2.001562 12 C 2.001562 12 5.001562 6 12 6 C 18.998437 6 21.998437 12 21.998437 12 Z M 21.998437 12 " transform="matrix(0.833333,0,0,0,0.833333,0,0)"/>\n    <path style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:${i};stroke-opacity:1;stroke-miterlimit:4;" d="M 15 12 C 15 13.654687 13.654687 15 12 15 C 10.345312 15 9 13.654687 9 12 C 9 10.345312 10.345312 9 12 9 C 13.654687 9 15 10.345312 15 12 Z M 15 12 " transform="matrix(0.833333,0,0,0,0.833333,0,0)"/>\`\n    `,
+        o = `\n    <path style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:${i};stroke-opacity:1;stroke-miterlimit:4;" d="M 20.001562 9 C 20.001562 9 19.678125 9.665625 18.998437 10.514062 M 12 14.001562 C 10.392187 14.001562 9.046875 13.589062 7.95 12.998437 M 12 14.001562 C 13.607812 14.001562 14.953125 13.589062 16.05 12.998437 M 12 14.001562 L 12 17.498437 M 3.998437 9 C 3.998437 9 4.354687 9.735937 5.104687 10.645312 M 7.95 12.998437 L 5.001562 15.998437 M 7.95 12.998437 C 6.689062 12.328125 5.751562 11.423437 5.104687 10.645312 M 16.05 12.998437 L 18.501562 15.998437 M 16.05 12.998437 C 17.38125 12.290625 18.351562 11.320312 18.998437 10.514062 M 5.104687 10.645312 L 2.001562 12 M 18.998437 10.514062 L 21.998437 12 " transform="matrix(0.833333,0,0,0,0.833333,0,0)"/>\n    `,
+        n = document.createElement('div');
+      (n.style.display = 'flex'), (n.style.alignItems = 'center');
+      let r = document.createElement('div'),
+        a = document.createElement('div');
+      a.classList.add('legend-toggle-switch');
+      let l = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      l.setAttribute('width', '22'), l.setAttribute('height', '16');
+      let h = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      h.innerHTML = s;
+      let d = !0;
+      a.addEventListener('click', () => {
+        d
+          ? ((d = !1), (h.innerHTML = o), e.applyOptions({ visible: !1 }))
+          : ((d = !0), e.applyOptions({ visible: !0 }), (h.innerHTML = s));
+      }),
+        l.appendChild(h),
+        a.appendChild(l),
+        n.appendChild(r),
+        n.appendChild(a),
+        this.seriesContainer.appendChild(n);
+      const c = e.options(),
+        u = 'color' in c && 'string' == typeof c.color ? c.color : '#000';
+      this._lines.push({
+        name: t,
+        div: r,
+        row: n,
+        toggle: a,
+        series: e,
+        solid: u.startsWith('rgba') ? u.replace(/[^,]+(?=\))/, '1') : u,
+      });
+    }
+    legendItemFormat(t, e) {
+      return t.toFixed(e).toString().padStart(8, ' ');
+    }
+    shorthandFormat(t) {
+      const e = Math.abs(t);
+      return e >= 1e6
+        ? (t / 1e6).toFixed(1) + 'M'
+        : e >= 1e3
+        ? (t / 1e3).toFixed(1) + 'K'
+        : t.toString().padStart(8, ' ');
+    }
+    legendHandler(t, e = !1) {
+      if (!this.ohlcEnabled && !this.linesEnabled && !this.percentEnabled)
+        return;
+      const i = this.handler.series.options();
+      if (!t.time)
+        return (
+          (this.candle.style.color = 'transparent'),
+          void (this.candle.innerHTML = this.candle.innerHTML
+            .replace(i.upColor, '')
+            .replace(i.downColor, ''))
+        );
+      let s,
+        o = null;
+      if (e) {
+        const e = this.handler.chart.timeScale();
+        let i = e.timeToCoordinate(t.time);
+        null !== i && (o = e.coordinateToLogical(i)),
+          null !== o && (s = this.handler.series.dataByIndex(o));
+      } else s = t.seriesData.get(this.handler.series);
+      this.candle.style.color = '';
+      let n = '<span style="line-height: 1.8;">';
+      if (s) {
+        if (
+          (this.ohlcEnabled &&
+            ((n += `O ${this.legendItemFormat(
+              s.open,
+              this.handler.precision
+            )} `),
+            (n += `| H ${this.legendItemFormat(
+              s.high,
+              this.handler.precision
+            )} `),
+            (n += `| L ${this.legendItemFormat(
+              s.low,
+              this.handler.precision
+            )} `),
+            (n += `| C ${this.legendItemFormat(
+              s.close,
+              this.handler.precision
+            )} `)),
+          this.percentEnabled)
+        ) {
+          let t = ((s.close - s.open) / s.open) * 100,
+            e = t > 0 ? i.upColor : i.downColor,
+            o = `${t >= 0 ? '+' : ''}${t.toFixed(2)} %`;
+          this.colorBasedOnCandle
+            ? (n += `| <span style="color: ${e};">${o}</span>`)
+            : (n += '| ' + o);
+        }
+        if (this.handler.volumeSeries) {
+          let e;
+          (e =
+            null !== o
+              ? this.handler.volumeSeries.dataByIndex(o)
+              : t.seriesData.get(this.handler.volumeSeries)),
+            e &&
+              (n += this.ohlcEnabled
+                ? `<br>V ${this.shorthandFormat(e.value)}`
+                : '');
+        }
+      }
+      (this.candle.innerHTML = n + '</span>'),
+        this._lines.forEach((i) => {
+          if (!this.linesEnabled) return void (i.row.style.display = 'none');
+          let s, n;
+          if (
+            ((i.row.style.display = 'flex'),
+            (s =
+              e && null !== o
+                ? i.series.dataByIndex(o)
+                : t.seriesData.get(i.series)),
+            s?.value)
+          ) {
+            if ('Histogram' == i.series.seriesType())
+              n = this.shorthandFormat(s.value);
+            else {
+              const t = i.series.options().priceFormat;
+              n =
+                'precision' in t
+                  ? this.legendItemFormat(s.value, t.precision)
+                  : s.value.toString();
+            }
+            i.div.innerHTML = `<span style="color: ${i.solid};">▨</span>    ${i.name} : ${n}`;
+          }
+        });
+    }
+  }
+  let n = class {
+    chart;
+    data;
+    container;
+    lines;
+    fibLevel;
+    constructor(t) {
+      (this.chart = t),
+        (this.data = { point1: null, point2: null }),
+        (this.container = document.createElement('div')),
+        (this.lines = {}),
+        (this.fibLevel = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1, 1.618, 2.618]);
+      for (let t = 0; t < this.fibLevel.length; t++)
+        (this.lines[t] = document.createElement('div')),
+          this.container.appendChild(this.lines[t]);
+      this.container.className = 'fibdrawer';
+      const e = this.chart.chartElement().parentElement;
+      e && e.appendChild(this.container);
+    }
+    addPoint(t, e) {
+      const i = { x: t, y: e };
+      this.data.point1
+        ? ((this.data.point2 = i), this.updateGeometry())
+        : (this.data.point1 = i);
+    }
+    updateGeometry() {
+      if (!this.data.point1 || !this.data.point2) return;
+      const t = this.data.point1,
+        e = this.data.point2;
+      let i = Math.min(t.y, e.y),
+        s = Math.max(t.y, e.y);
+      const o = (s - i) / 8;
+      (this.container.style.left = '0px'),
+        (this.container.style.width = '100%'),
+        (this.container.style.top = i + 'px'),
+        (this.container.style.height = s - i + 'px');
+      for (let t = 0; t < this.fibLevel.length; t++) {
+        const e = Math.round(o * t),
+          i = this.fibLevel[t];
+        (this.lines[t].style.bottom = `calc(100% - ${e}px)`),
+          (this.lines[t].style.width = '100%'),
+          (this.lines[t].style.height = '1px'),
+          (this.lines[t].style.position = 'absolute'),
+          (this.lines[t].style.borderTop = '1px dotted white'),
+          (this.lines[t].style.zIndex = '5'),
+          (this.lines[
+            t
+          ].innerHTML = `<span style="position: absolute; left: 0; top: 0;">${i}</span><span style="position: absolute; right: 0; top: 0;">${i}</span>`);
+      }
+    }
+    destroy() {
+      this.container.remove();
+    }
+  };
+  function r(t) {
+    const e = document.createElement('div');
+    return (e.id = `drawing-menu-${t}`), e;
+  }
+  class a {
+    div;
+    _commandFunctions;
+    drawingMenu;
+    chart;
+    series;
+    _drawingBox;
+    _drawing;
+    buttons = {};
+    constructor(t, e, i, s) {
+      (this._commandFunctions = s),
+        (this.chart = e),
+        (this.series = i),
+        (this.div = document.createElement('div')),
+        this.div.classList.add('toolbox'),
+        (this.div.style.overflow = 'hidden'),
+        (this.drawingMenu = r(t)),
+        this.drawingMenu.classList.add('drawing-menu'),
+        this.drawingMenu.classList.add(`dm-${t}`),
+        (this.drawingMenu.style.display = 'none'),
+        this.div.appendChild(this.drawingMenu),
+        this.addCloseButton(),
+        this.addSettingsButton(),
+        this.addDrawingButton(),
+        this.addMagnetButton(),
+        this.addScreenshotButton(),
+        this.addDrawingBox();
+    }
+    toJSON() {
+      const {
+        _drawing: t,
+        _drawingBox: e,
+        chart: i,
+        drawingMenu: s,
+        series: o,
+        ...n
+      } = this;
+      return n;
+    }
+    addCloseButton() {
+      let t = document.createElement('i');
+      t.classList.add('fas', 'fa-times'),
+        t.setAttribute('data-tool', 'close'),
+        (t.style.color = 'red'),
+        t.addEventListener('click', () => {
+          window.callbackFunction('chart_close');
+        }),
+        this.div.appendChild(t),
+        (this.buttons.close = t);
+    }
+    addSettingsButton() {
+      let t = document.createElement('i');
+      t.classList.add('fas', 'fa-cog'),
+        t.setAttribute('data-tool', 'settings'),
+        t.addEventListener('click', () => {
+          window.callbackFunction('chart_settings');
+        }),
+        this.div.appendChild(t),
+        (this.buttons.settings = t);
+    }
+    addDrawingButton() {
+      let t = document.createElement('i');
+      t.classList.add('fas', 'fa-pen'),
+        t.setAttribute('data-tool', 'drawing'),
+        t.addEventListener('click', () => {
+          const t = this.drawingMenu;
+          'none' == t.style.display
+            ? (t.style.display = 'flex')
+            : (t.style.display = 'none');
+        }),
+        this.div.appendChild(t),
+        (this.buttons.drawing = t);
+    }
+    addMagnetButton() {
+      let t = document.createElement('i');
+      t.classList.add('fas', 'fa-magnet'),
+        t.setAttribute('data-tool', 'magnet'),
+        t.addEventListener('click', () => {
+          window.callbackFunction('chart_magnet');
+        }),
+        this.div.appendChild(t),
+        (this.buttons.magnet = t);
+    }
+    addScreenshotButton() {
+      let t = document.createElement('i');
+      t.classList.add('fas', 'fa-camera'),
+        t.setAttribute('data-tool', 'screenshot'),
+        t.addEventListener('click', () => {
+          window.callbackFunction('chart_screenshot');
+        }),
+        this.div.appendChild(t),
+        (this.buttons.screenshot = t);
+    }
+    addVolumeButton() {
+      let t = document.createElement('i');
+      t.classList.add('fas', 'fa-chart-bar'),
+        t.setAttribute('data-tool', 'volume'),
+        t.addEventListener('click', () => {
+          window.callbackFunction('chart_volume');
+        }),
+        this.div.appendChild(t),
+        (this.buttons.volume = t);
+    }
+    addDrawingBox() {
+      const t = (this._drawingBox = document.createElement('div'));
+      t.id = 'drawing-box';
+      const e = document.createElement('button');
+      (e.textContent = 'Fib Drawing'),
+        (e.id = 'fib-button'),
+        e.addEventListener('click', () => {
+          this.createFibDrawing(), window.toggleDrawing('fib-button');
+        }),
+        t.appendChild(e),
+        this.div.appendChild(t);
+    }
+    createFibDrawing() {
+      if (this._drawing) return;
+      this._drawing = new n(this.chart);
+      const t = this._drawing;
+      this._commandFunctions.push(
+        (t) => 'Escape' === t.key && (this.endDrawing(), !0)
+      );
+      this.chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+        t.updateGeometry();
+      });
+      (window.fibHandler = (e, i, s = this.series) => {
+        t.addPoint(e, i);
+      }),
+        (window.fibShowHide = this.endDrawing.bind(this));
+    }
+    endDrawing() {
+      window.toggleDrawing(),
+        this._drawing &&
+          ((this._drawing = void 0), (window.fibHandler = void 0));
+    }
+  }
+  class l {
+    _div;
+    constructor(t) {
+      const e = t.id;
+      (this._div = document.createElement('div')),
+        (this._div.id = `topbar-${e}`),
+        this._div.classList.add('topbar');
+      let i = document.createElement('button');
+      (i.innerHTML = '&#x1F50D;'),
+        (i.id = `search-button-${e}`),
+        i.classList.add('search-button');
+      let s = document.createElement('input');
+      (s.type = 'text'),
+        s.classList.add('search-input'),
+        (s.id = `search-input-${e}`),
+        (s.placeholder = 'Symbol'),
+        s.addEventListener('focus', () => (window.textBoxFocused = !0)),
+        s.addEventListener('blur', () => (window.textBoxFocused = !1)),
+        s.addEventListener('keydown', (t) => {
+          'Enter' === t.key &&
+            window.callbackFunction(`search${e}_~_${s.value}`);
+        }),
+        i.addEventListener('click', () => {
+          window.callbackFunction(`search${e}_~_${s.value}`);
+        });
+      const o = document.createElement('div');
+      (o.id = `timeframe-div-${e}`), o.classList.add('timeframe-div');
+      const n = document.createElement('select');
+      (n.id = `timeframe-select-${e}`), n.classList.add('timeframe-select');
+      ['1m', '5m', '15m', '30m', '1h', '2h', '4h', '1d', '1w', '1M'].forEach(
+        (t) => {
+          const e = document.createElement('option');
+          (e.value = t), (e.text = t), n.appendChild(e);
+        }
+      ),
+        n.addEventListener('change', () => {
+          const t = n.value;
+          window.callbackFunction(`timeframe${e}_~_${t}`);
+        }),
+        o.appendChild(n),
+        this._div.appendChild(s),
+        this._div.appendChild(i),
+        this._div.appendChild(o);
+    }
+    toJSON() {
+      return {};
+    }
+  }
+  s();
+  function h(t) {
+    if (void 0 === t) throw new Error('Value is undefined');
+    return t;
+  }
+  class d {
+    _chart = void 0;
+    _series = void 0;
+    requestUpdate() {
+      this._requestUpdate && this._requestUpdate();
+    }
+    _requestUpdate;
+    attached({ chart: t, series: e, requestUpdate: i }) {
+      (this._chart = t),
+        (this._series = e),
+        this._series.subscribeDataChanged(this._fireDataUpdated),
+        (this._requestUpdate = i),
+        this.requestUpdate();
+    }
+    detached() {
+      (this._chart = void 0),
+        (this._series = void 0),
+        (this._requestUpdate = void 0);
+    }
+    get chart() {
+      return h(this._chart);
+    }
+    get series() {
+      return h(this._series);
+    }
+    _fireDataUpdated(t) {
+      this.dataUpdated && this.dataUpdated(t);
+    }
+  }
+  const c = { lineColor: '#1E80F0', lineStyle: e.LineStyle.Solid, width: 4 };
+  var u;
+  !(function (t) {
+    (t[(t.NONE = 0)] = 'NONE'),
+      (t[(t.HOVERING = 1)] = 'HOVERING'),
+      (t[(t.DRAGGING = 2)] = 'DRAGGING'),
+      (t[(t.DRAGGINGP1 = 3)] = 'DRAGGINGP1'),
+      (t[(t.DRAGGINGP2 = 4)] = 'DRAGGINGP2'),
+      (t[(t.DRAGGINGP3 = 5)] = 'DRAGGINGP3'),
+      (t[(t.DRAGGINGP4 = 6)] = 'DRAGGINGP4');
+  })(u || (u = {}));
+  class p extends d {
+    _paneViews = [];
+    _options;
+    _points = [];
+    _state = u.NONE;
+    _startDragPoint = null;
+    _latestHoverPoint = null;
+    static _mouseIsDown = !1;
+    static hoveredObject = null;
+    static lastHoveredObject = null;
+    _listeners = [];
+    constructor(t) {
+      super(), (this._options = { ...c, ...t });
+    }
+    updateAllViews() {
+      this._paneViews.forEach((t) => t.update());
+    }
+    paneViews() {
+      return this._paneViews;
+    }
+    applyOptions(t) {
+      (this._options = { ...this._options, ...t }), this.requestUpdate();
+    }
+    updatePoints(...t) {
+      for (let e = 0; e < this.points.length; e++)
+        null != t[e] && (this.points[e] = t[e]);
+      this.requestUpdate();
+    }
+    detach() {
+      (this._options.lineColor = 'transparent'),
+        this.requestUpdate(),
+        this.series.detachPrimitive(this);
+      for (const t of this._listeners)
+        document.body.removeEventListener(t.name, t.listener);
+    }
+    get points() {
+      return this._points;
+    }
+    _subscribe(t, e) {
+      document.body.addEventListener(t, e),
+        this._listeners.push({ name: t, listener: e });
+    }
+    _unsubscribe(t, e) {
+      document.body.removeEventListener(t, e);
+      const i = this._listeners.find((i) => i.name === t && i.listener === e);
+      this._listeners.splice(this._listeners.indexOf(i), 1);
+    }
+    _handleHoverInteraction(t) {
+      if (((this._latestHoverPoint = t.point), p._mouseIsDown))
+        this._handleDragInteraction(t);
+      else if (this._mouseIsOverDrawing(t)) {
+        if (this._state != u.NONE) return;
+        this._moveToState(u.HOVERING),
+          (p.hoveredObject = p.lastHoveredObject = this);
+      } else {
+        if (this._state == u.NONE) return;
+        this._moveToState(u.NONE),
+          p.hoveredObject === this && (p.hoveredObject = null);
+      }
+    }
+    static _eventToPoint(t, e) {
+      if (!e || !t.point || !t.logical) return null;
+      const i = e.coordinateToPrice(t.point.y);
+      return null == i
+        ? null
+        : { time: t.time || null, logical: t.logical, price: i.valueOf() };
+    }
+    static _getDiff(t, e) {
+      return { logical: t.logical - e.logical, price: t.price - e.price };
+    }
+    _addDiffToPoint(t, e, i) {
+      t &&
+        ((t.logical = t.logical + e),
+        (t.price = t.price + i),
+        (t.time = this.series.dataByIndex(t.logical)?.time || null));
+    }
+    _handleMouseDownInteraction = () => {
+      (p._mouseIsDown = !0), this._onMouseDown();
+    };
+    _handleMouseUpInteraction = () => {
+      (p._mouseIsDown = !1), this._moveToState(u.HOVERING);
+    };
+    _handleDragInteraction(t) {
+      if (
+        this._state != u.DRAGGING &&
+        this._state != u.DRAGGINGP1 &&
+        this._state != u.DRAGGINGP2 &&
+        this._state != u.DRAGGINGP3 &&
+        this._state != u.DRAGGINGP4
+      )
+        return;
+      const e = p._eventToPoint(t, this.series);
+      if (!e) return;
+      this._startDragPoint = this._startDragPoint || e;
+      const i = p._getDiff(e, this._startDragPoint);
+      this._onDrag(i), this.requestUpdate(), (this._startDragPoint = e);
+    }
+  }
+  class _ {
+    _options;
+    constructor(t) {
+      this._options = t;
+    }
+  }
+  class m extends _ {
+    _p1;
+    _p2;
+    _hovered;
+    constructor(t, e, i, s) {
+      super(i), (this._p1 = t), (this._p2 = e), (this._hovered = s);
+    }
+    _getScaledCoordinates(t) {
+      return null === this._p1.x ||
+        null === this._p1.y ||
+        null === this._p2.x ||
+        null === this._p2.y
+        ? null
+        : {
+            x1: Math.round(this._p1.x * t.horizontalPixelRatio),
+            y1: Math.round(this._p1.y * t.verticalPixelRatio),
+            x2: Math.round(this._p2.x * t.horizontalPixelRatio),
+            y2: Math.round(this._p2.y * t.verticalPixelRatio),
+          };
+    }
+    _drawEndCircle(t, e, i) {
+      (t.context.fillStyle = '#000'),
+        t.context.beginPath(),
+        t.context.arc(e, i, 9, 0, 2 * Math.PI),
+        t.context.stroke(),
+        t.context.fill();
+    }
+  }
+  function w(t, i) {
+    const s = {
+      [e.LineStyle.Solid]: [],
+      [e.LineStyle.Dotted]: [t.lineWidth, t.lineWidth],
+      [e.LineStyle.Dashed]: [2 * t.lineWidth, 2 * t.lineWidth],
+      [e.LineStyle.LargeDashed]: [6 * t.lineWidth, 6 * t.lineWidth],
+      [e.LineStyle.SparseDotted]: [t.lineWidth, 4 * t.lineWidth],
+    }[i];
+    t.setLineDash(s);
+  }
+  class g extends _ {
+    _point = { x: null, y: null };
+    constructor(t, e) {
+      super(e), (this._point = t);
+    }
+    draw(t) {
+      t.useBitmapCoordinateSpace((t) => {
+        if (null == this._point.y) return;
+        const e = t.context,
+          i = Math.round(this._point.y * t.verticalPixelRatio),
+          s = this._point.x ? this._point.x * t.horizontalPixelRatio : 0;
+        (e.lineWidth = this._options.width),
+          (e.strokeStyle = this._options.lineColor),
+          w(e, this._options.lineStyle),
+          e.beginPath(),
+          e.moveTo(s, i),
+          e.lineTo(t.bitmapSize.width, i),
+          e.stroke();
+      });
+    }
+  }
+  class b {
+    _source;
+    constructor(t) {
+      this._source = t;
+    }
+  }
+  class y extends b {
+    _p1 = { x: null, y: null };
+    _p2 = { x: null, y: null };
+    _source;
+    constructor(t) {
+      super(t), (this._source = t);
+    }
+    update() {
+      if (!this._source.p1 || !this._source.p2) return;
+      const t = this._source.series,
+        e = t.priceToCoordinate(this._source.p1.price),
+        i = t.priceToCoordinate(this._source.p2.price),
+        s = this._getX(this._source.p1),
+        o = this._getX(this._source.p2);
+      (this._p1 = { x: s, y: e }), (this._p2 = { x: o, y: i });
+    }
+    _getX(t) {
+      return this._source.chart.timeScale().logicalToCoordinate(t.logical);
+    }
+  }
+  class v extends b {
+    _source;
+    _point = { x: null, y: null };
+    constructor(t) {
+      super(t), (this._source = t);
+    }
+    update() {
+      const t = this._source._point,
+        e = this._source.chart.timeScale(),
+        i = this._source.series;
+      'RayLine' == this._source._type &&
+        (this._point.x = t.time
+          ? e.timeToCoordinate(t.time)
+          : e.logicalToCoordinate(t.logical)),
+        (this._point.y = i.priceToCoordinate(t.price));
+    }
+    renderer() {
+      return new g(this._point, this._source._options);
+    }
+  }
+  class x {
+    _source;
+    _y = null;
+    _price = null;
+    constructor(t) {
+      this._source = t;
+    }
+    update() {
+      if (!this._source.series || !this._source._point) return;
+      this._y = this._source.series.priceToCoordinate(
+        this._source._point.price
+      );
+      const t = this._source.series.options().priceFormat.precision;
+      this._price = this._source._point.price.toFixed(t).toString();
+    }
+    visible() {
+      return !0;
+    }
+    tickVisible() {
+      return !0;
+    }
+    coordinate() {
+      return this._y ?? 0;
+    }
+    text() {
+      return this._source._options.text || this._price || '';
+    }
+    textColor() {
+      return 'white';
+    }
+    backColor() {
+      return this._source._options.lineColor;
+    }
+  }
+  class f extends p {
+    _type = 'HorizontalLine';
+    _paneViews;
+    _point;
+    _callbackName;
+    _priceAxisViews;
+    _startDragPoint = null;
+    constructor(t, e, i = null) {
+      super(e),
+        (this._point = t),
+        (this._point.time = null),
+        (this._paneViews = [new v(this)]),
+        (this._priceAxisViews = [new x(this)]),
+        (this._callbackName = i);
+    }
+    get points() {
+      return [this._point];
+    }
+    updatePoints(...t) {
+      for (const e of t) e && (this._point.price = e.price);
+      this.requestUpdate();
+    }
+    updateAllViews() {
+      this._paneViews.forEach((t) => t.update()),
+        this._priceAxisViews.forEach((t) => t.update());
+    }
+    priceAxisViews() {
+      return this._priceAxisViews;
+    }
+    _moveToState(t) {
+      switch (t) {
+        case u.NONE:
+          (document.body.style.cursor = 'default'),
+            this._unsubscribe('mousedown', this._handleMouseDownInteraction);
+          break;
+        case u.HOVERING:
+          (document.body.style.cursor = 'pointer'),
+            this._unsubscribe('mouseup', this._childHandleMouseUpInteraction),
+            this._subscribe('mousedown', this._handleMouseDownInteraction),
+            this.chart.applyOptions({ handleScroll: !0 });
+          break;
+        case u.DRAGGING:
+          (document.body.style.cursor = 'grabbing'),
+            this._subscribe('mouseup', this._childHandleMouseUpInteraction),
+            this.chart.applyOptions({ handleScroll: !1 });
+      }
+      this._state = t;
+    }
+    _onDrag(t) {
+      this._addDiffToPoint(this._point, 0, t.price), this.requestUpdate();
+    }
+    _mouseIsOverDrawing(t, e = 4) {
+      if (!t.point) return !1;
+      const i = this.series.priceToCoordinate(this._point.price);
+      return !!i && Math.abs(i - t.point.y) < e;
+    }
+    _onMouseDown() {
+      this._startDragPoint = null;
+      if (this._latestHoverPoint) return this._moveToState(u.DRAGGING);
+    }
+    _childHandleMouseUpInteraction = () => {
+      this._handleMouseUpInteraction(),
+        this._callbackName &&
+          window.callbackFunction(
+            `${this._callbackName}_~_${this._point.price.toFixed(8)}`
+          );
+    };
+  }
+  class C extends _ {
+    _point = { x: null, y: null };
+    constructor(t, e) {
+      super(e), (this._point = t);
+    }
+    draw(t) {
+      t.useBitmapCoordinateSpace((t) => {
+        if (null == this._point.x) return;
+        const e = t.context,
+          i = this._point.x * t.horizontalPixelRatio;
+        (e.lineWidth = this._options.width),
+          (e.strokeStyle = this._options.lineColor),
+          w(e, this._options.lineStyle),
+          e.beginPath(),
+          e.moveTo(i, 0),
+          e.lineTo(i, t.bitmapSize.height),
+          e.stroke();
+      });
+    }
+  }
+  class G extends b {
+    _source;
+    _point = { x: null, y: null };
+    constructor(t) {
+      super(t), (this._source = t);
+    }
+    update() {
+      const t = this._source._point,
+        e = this._source.chart.timeScale(),
+        i = this._source.series;
+      (this._point.x = t.time
+        ? e.timeToCoordinate(t.time)
+        : e.logicalToCoordinate(t.logical)),
+        (this._point.y = i.priceToCoordinate(t.price));
+    }
+    renderer() {
+      return new C(this._point, this._source._options);
+    }
+  }
+  class D {
+    _source;
+    _x = null;
+    constructor(t) {
+      this._source = t;
+    }
+    update() {
+      if (!this._source.chart || !this._source._point) return;
+      const t = this._source._point,
+        e = this._source.chart.timeScale();
+      this._x = t.time
+        ? e.timeToCoordinate(t.time)
+        : e.logicalToCoordinate(t.logical);
+    }
+    visible() {
+      return !!this._source._options.text;
+    }
+    tickVisible() {
+      return !0;
+    }
+    coordinate() {
+      return this._x ?? 0;
+    }
+    text() {
+      return this._source._options.text || '';
+    }
+    textColor() {
+      return 'white';
+    }
+    backColor() {
+      return this._source._options.lineColor;
+    }
+  }
+  class S extends m {
+    constructor(t, e, i, s) {
+      super(t, e, i, s);
+    }
+    draw(t) {
+      t.useBitmapCoordinateSpace((t) => {
+        const e = t.context,
+          i = this._getScaledCoordinates(t);
+        if (!i) return;
+        (e.lineWidth = this._options.width),
+          (e.strokeStyle = this._options.lineColor),
+          w(e, this._options.lineStyle),
+          (e.fillStyle = this._options.fillColor);
+        const s = Math.min(i.x1, i.x2),
+          o = Math.min(i.y1, i.y2),
+          n = Math.abs(i.x1 - i.x2),
+          r = Math.abs(i.y1 - i.y2);
+        e.strokeRect(s, o, n, r),
+          e.fillRect(s, o, n, r),
+          this._hovered &&
+            (this._drawEndCircle(t, s, o),
+            this._drawEndCircle(t, s + n, o),
+            this._drawEndCircle(t, s + n, o + r),
+            this._drawEndCircle(t, s, o + r));
+      });
+    }
+  }
+  class E extends y {
+    constructor(t) {
+      super(t);
+    }
+    renderer() {
+      return new S(
+        this._p1,
+        this._p2,
+        this._source._options,
+        this._source.hovered
+      );
+    }
+  }
+  class k extends p {
+    _paneViews = [];
+    _hovered = !1;
+    constructor(t, e, i) {
+      super(),
+        this.points.push(t),
+        this.points.push(e),
+        (this._options = { ...c, ...i });
+    }
+    setFirstPoint(t) {
+      this.updatePoints(t);
+    }
+    setSecondPoint(t) {
+      this.updatePoints(null, t);
+    }
+    get p1() {
+      return this.points[0];
+    }
+    get p2() {
+      return this.points[1];
+    }
+    get hovered() {
+      return this._hovered;
+    }
+  }
+  const M = { fillEnabled: !0, fillColor: 'rgba(255, 255, 255, 0.2)', ...c };
+  class I extends m {
+    constructor(t, e, i, s) {
+      super(t, e, i, s);
+    }
+    draw(t) {
+      t.useBitmapCoordinateSpace((t) => {
+        if (
+          null === this._p1.x ||
+          null === this._p1.y ||
+          null === this._p2.x ||
+          null === this._p2.y
+        )
+          return;
+        const e = t.context,
+          i = this._getScaledCoordinates(t);
+        i &&
+          ((e.lineWidth = this._options.width),
+          (e.strokeStyle = this._options.lineColor),
+          w(e, this._options.lineStyle),
+          e.beginPath(),
+          e.moveTo(i.x1, i.y1),
+          e.lineTo(i.x2, i.y2),
+          e.stroke(),
+          this._hovered &&
+            (this._drawEndCircle(t, i.x1, i.y1),
+            this._drawEndCircle(t, i.x2, i.y2)));
+      });
+    }
+  }
+  class L extends y {
+    constructor(t) {
+      super(t);
+    }
+    renderer() {
+      return new I(
+        this._p1,
+        this._p2,
+        this._source._options,
+        this._source.hovered
+      );
+    }
+  }
+  return (
+    (t.Box = class extends k {
+      _type = 'Box';
+      constructor(t, e, i) {
+        super(t, e, i),
+          (this._options = { ...M, ...i }),
+          (this._paneViews = [new E(this)]);
+      }
+      _moveToState(t) {
+        switch (t) {
+          case u.NONE:
+            (document.body.style.cursor = 'default'),
+              (this._hovered = !1),
+              this._unsubscribe('mousedown', this._handleMouseDownInteraction);
+            break;
+          case u.HOVERING:
+            (document.body.style.cursor = 'pointer'),
+              (this._hovered = !0),
+              this._unsubscribe('mouseup', this._handleMouseUpInteraction),
+              this._subscribe('mousedown', this._handleMouseDownInteraction),
+              this.chart.applyOptions({ handleScroll: !0 });
+            break;
+          case u.DRAGGINGP1:
+          case u.DRAGGINGP2:
+          case u.DRAGGINGP3:
+          case u.DRAGGINGP4:
+          case u.DRAGGING:
+            (document.body.style.cursor = 'grabbing'),
+              document.body.addEventListener(
+                'mouseup',
+                this._handleMouseUpInteraction
+              ),
+              this._subscribe('mouseup', this._handleMouseUpInteraction),
+              this.chart.applyOptions({ handleScroll: !1 });
+        }
+        this._state = t;
+      }
+      _onDrag(t) {
+        (this._state != u.DRAGGING && this._state != u.DRAGGINGP1) ||
+          this._addDiffToPoint(this.p1, t.logical, t.price),
+          (this._state != u.DRAGGING && this._state != u.DRAGGINGP2) ||
+            this._addDiffToPoint(this.p2, t.logical, t.price),
+          this._state != u.DRAGGING &&
+            (this._state == u.DRAGGINGP3 &&
+              (this._addDiffToPoint(this.p1, t.logical, 0),
+              this._addDiffToPoint(this.p2, 0, t.price)),
+            this._state == u.DRAGGINGP4 &&
+              (this._addDiffToPoint(this.p1, 0, t.price),
+              this._addDiffToPoint(this.p2, t.logical, 0)));
+      }
+      _onMouseDown() {
+        this._startDragPoint = null;
+        const t = this._latestHoverPoint,
+          e = this._paneViews[0]._p1,
+          i = this._paneViews[0]._p2;
+        if (!(e.x && i.x && e.y && i.y)) return this._moveToState(u.DRAGGING);
+        const s = 10;
+        Math.abs(t.x - e.x) < s && Math.abs(t.y - e.y) < s
+          ? this._moveToState(u.DRAGGINGP1)
+          : Math.abs(t.x - i.x) < s && Math.abs(t.y - i.y) < s
+          ? this._moveToState(u.DRAGGINGP2)
+          : Math.abs(t.x - e.x) < s && Math.abs(t.y - i.y) < s
+          ? this._moveToState(u.DRAGGINGP3)
+          : Math.abs(t.x - i.x) < s && Math.abs(t.y - e.y) < s
+          ? this._moveToState(u.DRAGGINGP4)
+          : this._moveToState(u.DRAGGING);
+      }
+      _mouseIsOverDrawing(t, e = 4) {
+        if (!t.point) return !1;
+        const i = this._paneViews[0]._p1.x,
+          s = this._paneViews[0]._p1.y,
+          o = this._paneViews[0]._p2.x,
+          n = this._paneViews[0]._p2.y;
+        if (!(i && o && s && n)) return !1;
+        const r = t.point.x,
+          a = t.point.y,
+          l = Math.min(i, o),
+          h = Math.min(s, n),
+          d = Math.abs(i - o),
+          c = Math.abs(s - n),
+          u = e / 2;
+        return r > l - u && r < l + d + u && a > h - u && a < h + c + u;
+      }
+    }),
+    (t.Handler = class {
+      id;
+      commandFunctions = [];
+      wrapper;
+      div;
+      chart;
+      scale;
+      precision = 2;
+      series;
+      volumeSeries;
+      legend;
+      _topBar;
+      toolBox;
+      spinner;
+      _seriesList = [];
+      constructor(t, e, i, s, n) {
+        (this.reSize = this.reSize.bind(this)),
+          (this.id = t),
+          (this.scale = { width: e, height: i }),
+          (this.wrapper = document.createElement('div')),
+          this.wrapper.classList.add('handler'),
+          (this.wrapper.style.float = s),
+          (this.div = document.createElement('div')),
+          (this.div.style.position = 'relative'),
+          this.wrapper.appendChild(this.div),
+          window.containerDiv.append(this.wrapper),
+          (this.chart = this._createChart()),
+          (this.series = this.createCandlestickSeries()),
+          (this.volumeSeries = this.createVolumeSeries()),
+          (this.legend = new o(this)),
+          document.addEventListener('keydown', (t) => {
+            for (
+              let e = 0;
+              e < this.commandFunctions.length && !this.commandFunctions[e](t);
+              e++
+            );
+          }),
+          (window.handlerInFocus = this.id),
+          this.wrapper.addEventListener(
+            'mouseover',
+            () => (window.handlerInFocus = this.id)
+          ),
+          this.reSize(),
+          n && window.addEventListener('resize', () => this.reSize());
+      }
+      reSize() {
+        let t =
+          (0 !== this.scale.height && this._topBar?._div.offsetHeight) || 0;
+        this.chart.resize(
+          window.innerWidth * this.scale.width,
+          window.innerHeight * this.scale.height - t
+        ),
+          (this.wrapper.style.width = 100 * this.scale.width + '%'),
+          (this.wrapper.style.height = 100 * this.scale.height + '%'),
+          0 === this.scale.height || 0 === this.scale.width
+            ? this.toolBox && (this.toolBox.div.style.display = 'none')
+            : this.toolBox && (this.toolBox.div.style.display = 'flex');
+      }
+      _createChart() {
+        const t = {
+          width: window.innerWidth * this.scale.width,
+          height: window.innerHeight * this.scale.height,
+          layout: {
+            textColor: window.pane.color,
+            background: { color: '#000000', type: e.ColorType.Solid },
+            fontSize: 12,
+          },
+          rightPriceScale: { scaleMargins: { top: 0.3, bottom: 0.25 } },
+          timeScale: { timeVisible: !0, secondsVisible: !1 },
+          crosshair: {
+            mode: e.CrosshairMode.Normal,
+            vertLine: { labelBackgroundColor: 'rgb(46, 46, 46)' },
+            horzLine: { labelBackgroundColor: 'rgb(55, 55, 55)' },
+          },
+          grid: {
+            vertLines: { color: 'rgba(29, 30, 38, 5)' },
+            horzLines: { color: 'rgba(29, 30, 58, 5)' },
+          },
+          handleScale: {
+            axisPressedMouseMove: { time: !0, price: !0 },
+            mouseWheel: !0,
+            pinch: !0,
+          },
+          handleScroll: {
+            horzTouchDrag: !0,
+            vertTouchDrag: !0,
+            mouseWheel: !0,
+            pressedMouseMove: !0,
+          },
+        };
+        return e.createChart(this.div, t);
+      }
+      createCandlestickSeries() {
+        const t = 'rgba(39, 157, 130, 100)',
+          i = 'rgba(200, 97, 100, 100)',
+          s = {
+            upColor: t,
+            borderUpColor: t,
+            wickUpColor: t,
+            downColor: i,
+            borderDownColor: i,
+            wickDownColor: i,
+          },
+          o = this.chart.addSeries(e.CandlestickSeries, s);
+        return (
+          o
+            .priceScale()
+            .applyOptions({ scaleMargins: { top: 0.2, bottom: 0.2 } }),
+          o
+        );
+      }
+      createVolumeSeries() {
+        const t = this.chart.addSeries(e.HistogramSeries, {
+          color: '#26a69a',
+          priceFormat: { type: 'volume' },
+          priceScaleId: 'volume_scale',
+        });
+        return (
+          t
+            .priceScale()
+            .applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } }),
+          t
+        );
+      }
+      createLineSeries(t, i) {
+        const s = this.chart.addSeries(e.LineSeries, { ...i });
+        return (
+          this._seriesList.push(s),
+          this.legend.makeSeriesRow(t, s),
+          { name: t, series: s }
+        );
+      }
+      createHistogramSeries(t, i) {
+        const s = this.chart.addSeries(e.HistogramSeries, { ...i });
+        return (
+          this._seriesList.push(s),
+          this.legend.makeSeriesRow(t, s),
+          { name: t, series: s }
+        );
+      }
+      createToolBox() {
+        (this.toolBox = new a(
+          this.id,
+          this.chart,
+          this.series,
+          this.commandFunctions
+        )),
+          this.div.appendChild(this.toolBox.div);
+      }
+      createTopBar() {
+        return (
+          (this._topBar = new l(this)),
+          this.wrapper.prepend(this._topBar._div),
+          this._topBar
+        );
+      }
+      toJSON() {
+        const { chart: t, ...e } = this;
+        return e;
+      }
+      static syncCharts(t, e, i = !1) {
+        function s(t, e) {
+          e
+            ? (t.chart.setCrosshairPosition(
+                e.value || e.close,
+                e.time,
+                t.series
+              ),
+              t.legend.legendHandler(e, !0))
+            : t.chart.clearCrosshairPosition();
+        }
+        function o(t, e) {
+          return (e.time && e.seriesData.get(t)) || null;
+        }
+        const n = t.chart.timeScale(),
+          r = e.chart.timeScale(),
+          a = (t) => {
+            t && n.setVisibleLogicalRange(t);
+          },
+          l = (t) => {
+            t && r.setVisibleLogicalRange(t);
+          },
+          h = (i) => {
+            s(e, o(t.series, i));
+          },
+          d = (i) => {
+            s(t, o(e.series, i));
+          };
+        let c = e;
+        function u(t, e, s, o, n, r) {
+          t.wrapper.addEventListener('mouseover', () => {
+            c !== t &&
+              ((c = t),
+              e.chart.unsubscribeCrosshairMove(s),
+              t.chart.subscribeCrosshairMove(o),
+              i ||
+                (e.chart.timeScale().unsubscribeVisibleLogicalRangeChange(n),
+                t.chart.timeScale().subscribeVisibleLogicalRangeChange(r)));
+          });
+        }
+        u(e, t, h, d, l, a),
+          u(t, e, d, h, a, l),
+          e.chart.subscribeCrosshairMove(d);
+        const p = r.getVisibleLogicalRange();
+        p && n.setVisibleLogicalRange(p),
+          i || e.chart.timeScale().subscribeVisibleLogicalRangeChange(a);
+      }
+      static makeSearchBox(t) {
+        const e = document.createElement('div');
+        e.classList.add('searchbox'), (e.style.display = 'none');
+        const i = document.createElement('div');
+        i.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1"><path style="fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke:lightgray;stroke-opacity:1;stroke-miterlimit:4;" d="M 15 15 L 21 21 M 10 17 C 6.132812 17 3 13.867188 3 10 C 3 6.132812 6.132812 3 10 3 C 13.867188 3 17 6.132812 17 10 C 17 13.867188 13.867188 17 10 17 Z M 10 17 "/></svg>';
+        const s = document.createElement('input');
+        return (
+          (s.type = 'text'),
+          e.appendChild(i),
+          e.appendChild(s),
+          t.div.appendChild(e),
+          t.commandFunctions.push(
+            (i) =>
+              window.handlerInFocus === t.id &&
+              !window.textBoxFocused &&
+              ('none' === e.style.display
+                ? !!/^[a-zA-Z0-9]$/.test(i.key) &&
+                  ((e.style.display = 'flex'), s.focus(), !0)
+                : ('Enter' === i.key || 'Escape' === i.key) &&
+                  ('Enter' === i.key &&
+                    window.callbackFunction(`search${t.id}_~_${s.value}`),
+                  (e.style.display = 'none'),
+                  (s.value = ''),
+                  !0))
+          ),
+          s.addEventListener('input', () => (s.value = s.value.toUpperCase())),
+          { window: e, box: s }
+        );
+      }
+      static makeSpinner(t) {
+        (t.spinner = document.createElement('div')),
+          t.spinner.classList.add('spinner'),
+          t.wrapper.appendChild(t.spinner);
+        let e = 0;
+        !(function i() {
+          t.spinner &&
+            ((e += 10),
+            (t.spinner.style.transform = `translate(-50%, -50%) rotate(${e}deg)`),
+            requestAnimationFrame(i));
+        })();
+      }
+      static _styleMap = {
+        '--bg-color': 'backgroundColor',
+        '--hover-bg-color': 'hoverBackgroundColor',
+        '--click-bg-color': 'clickBackgroundColor',
+        '--active-bg-color': 'activeBackgroundColor',
+        '--muted-bg-color': 'mutedBackgroundColor',
+        '--border-color': 'borderColor',
+        '--color': 'color',
+        '--active-color': 'activeColor',
+      };
+      static setRootStyles(t) {
+        const e = document.documentElement.style;
+        for (const [i, s] of Object.entries(this._styleMap))
+          e.setProperty(i, t[s]);
+      }
+    }),
+    (t.HorizontalLine = f),
+    (t.Legend = o),
+    (t.RayLine = class extends f {
+      _type = 'RayLine';
+      constructor(t, e) {
+        super({ ...t }, e), (this._point.time = t.time);
+      }
+      updatePoints(...t) {
+        for (const e of t) e && (this._point = e);
+        this.requestUpdate();
+      }
+      _onDrag(t) {
+        this._addDiffToPoint(this._point, t.logical, t.price),
+          this.requestUpdate();
+      }
+      _mouseIsOverDrawing(t, e = 4) {
+        if (!t.point) return !1;
+        const i = this.series.priceToCoordinate(this._point.price),
+          s = this._point.time
+            ? this.chart.timeScale().timeToCoordinate(this._point.time)
+            : null;
+        return !(!i || !s) && Math.abs(i - t.point.y) < e && t.point.x > s - e;
+      }
+    }),
+    (t.Table = class {
+      _div;
+      callbackName;
+      borderColor;
+      borderWidth;
+      table;
+      rows = {};
+      headings;
+      widths;
+      alignments;
+      footer;
+      header;
+      constructor(t, e, i, s, o, n, r = !1, a, l, h, d, c) {
+        (this._div = document.createElement('div')),
+          (this.callbackName = null),
+          (this.borderColor = l),
+          (this.borderWidth = h),
+          r
+            ? ((this._div.style.position = 'absolute'),
+              (this._div.style.cursor = 'move'))
+            : ((this._div.style.position = 'relative'),
+              (this._div.style.float = n)),
+          (this._div.style.zIndex = '2000'),
+          this.reSize(t, e),
+          (this._div.style.display = 'flex'),
+          (this._div.style.flexDirection = 'column'),
+          (this._div.style.borderRadius = '5px'),
+          (this._div.style.color = 'white'),
+          (this._div.style.fontSize = '12px'),
+          (this._div.style.fontVariantNumeric = 'tabular-nums'),
+          (this.table = document.createElement('table')),
+          (this.table.style.width = '100%'),
+          (this.table.style.borderCollapse = 'collapse'),
+          (this._div.style.overflow = 'hidden'),
+          (this.headings = i),
+          (this.widths = s.map((t) => 100 * t + '%')),
+          (this.alignments = o);
+        let u = this.table.createTHead().insertRow();
+        for (let t = 0; t < this.headings.length; t++) {
+          let e = document.createElement('th');
+          (e.textContent = this.headings[t]),
+            (e.style.width = this.widths[t]),
+            (e.style.letterSpacing = '0.03rem'),
+            (e.style.padding = '0.2rem 0px'),
+            (e.style.fontWeight = '500'),
+            (e.style.textAlign = 'center'),
+            0 !== t && (e.style.borderLeft = h + 'px solid ' + l),
+            (e.style.position = 'sticky'),
+            (e.style.top = '0'),
+            (e.style.backgroundColor = c.length > 0 ? c[t] : a),
+            (e.style.color = d[t]),
+            u.appendChild(e);
+        }
+        let p,
+          _,
+          m = document.createElement('div');
+        if (
+          ((m.style.overflowY = 'auto'),
+          (m.style.overflowX = 'hidden'),
+          (m.style.backgroundColor = a),
+          m.appendChild(this.table),
+          this._div.appendChild(m),
+          window.containerDiv.appendChild(this._div),
+          !r)
+        )
+          return;
+        let w = (t) => {
+            (this._div.style.left = t.clientX - p + 'px'),
+              (this._div.style.top = t.clientY - _ + 'px');
+          },
+          g = () => {
+            document.removeEventListener('mousemove', w),
+              document.removeEventListener('mouseup', g);
+          };
+        this._div.addEventListener('mousedown', (t) => {
+          (p = t.clientX - this._div.offsetLeft),
+            (_ = t.clientY - this._div.offsetTop),
+            document.addEventListener('mousemove', w),
+            document.addEventListener('mouseup', g);
+        });
+      }
+      divToButton(t, e) {
+        t.addEventListener(
+          'mouseover',
+          () => (t.style.backgroundColor = 'rgba(60, 60, 60, 0.6)')
+        ),
+          t.addEventListener(
+            'mouseout',
+            () => (t.style.backgroundColor = 'transparent')
+          ),
+          t.addEventListener(
+            'mousedown',
+            () => (t.style.backgroundColor = 'rgba(60, 60, 60)')
+          ),
+          t.addEventListener('click', () => window.callbackFunction(e)),
+          t.addEventListener(
+            'mouseup',
+            () => (t.style.backgroundColor = 'rgba(60, 60, 60, 0.6)')
+          );
+      }
+      newRow(t, e = !1) {
+        let i = this.table.insertRow();
+        i.style.cursor = 'default';
+        for (let s = 0; s < this.headings.length; s++) {
+          let o = i.insertCell();
+          (o.style.width = this.widths[s]),
+            (o.style.textAlign = this.alignments[s]),
+            (o.style.border =
+              this.borderWidth + 'px solid ' + this.borderColor),
+            e &&
+              this.divToButton(
+                o,
+                `${this.callbackName}_~_${t};;;${this.headings[s]}`
+              );
+        }
+        e || this.divToButton(i, `${this.callbackName}_~_${t}`),
+          (this.rows[t] = i);
+      }
+      deleteRow(t) {
+        this.table.deleteRow(this.rows[t].rowIndex), delete this.rows[t];
+      }
+      clearRows() {
+        let t = Object.keys(this.rows).length;
+        for (let e = 0; e < t; e++) this.table.deleteRow(-1);
+        this.rows = {};
+      }
+      _getCell(t, e) {
+        return this.rows[t].cells[this.headings.indexOf(e)];
+      }
+      updateCell(t, e, i) {
+        this._getCell(t, e).textContent = i;
+      }
+      styleCell(t, e, i, s) {
+        this._getCell(t, e).style[i] = s;
+      }
+      makeSection(t, e, i, s = !1) {
+        let o = document.createElement('div');
+        (o.style.display = 'flex'),
+          (o.style.width = '100%'),
+          (o.style.padding = '3px 0px'),
+          (o.style.backgroundColor = 'rgb(30, 30, 30)'),
+          'footer' === e ? this._div.appendChild(o) : this._div.prepend(o);
+        const n = [];
+        for (let e = 0; e < i; e++) {
+          let i = document.createElement('div');
+          o.appendChild(i),
+            (i.style.flex = '1'),
+            (i.style.textAlign = 'center'),
+            s &&
+              (this.divToButton(i, `${t}_~_${e}`),
+              (i.style.borderRadius = '2px')),
+            n.push(i);
+        }
+        'footer' === e ? (this.footer = n) : (this.header = n);
+      }
+      reSize(t, e) {
+        (this._div.style.width = t <= 1 ? 100 * t + '%' : t + 'px'),
+          (this._div.style.height = e <= 1 ? 100 * e + '%' : e + 'px');
+      }
+    }),
+    (t.ToolBox = a),
+    (t.TopBar = l),
+    (t.TrendLine = class extends k {
+      _type = 'TrendLine';
+      constructor(t, e, i) {
+        super(t, e, i), (this._paneViews = [new L(this)]);
+      }
+      _moveToState(t) {
+        switch (t) {
+          case u.NONE:
+            (document.body.style.cursor = 'default'),
+              (this._hovered = !1),
+              this.requestUpdate(),
+              this._unsubscribe('mousedown', this._handleMouseDownInteraction);
+            break;
+          case u.HOVERING:
+            (document.body.style.cursor = 'pointer'),
+              (this._hovered = !0),
+              this.requestUpdate(),
+              this._subscribe('mousedown', this._handleMouseDownInteraction),
+              this._unsubscribe('mouseup', this._handleMouseDownInteraction),
+              this.chart.applyOptions({ handleScroll: !0 });
+            break;
+          case u.DRAGGINGP1:
+          case u.DRAGGINGP2:
+          case u.DRAGGING:
+            (document.body.style.cursor = 'grabbing'),
+              this._subscribe('mouseup', this._handleMouseUpInteraction),
+              this.chart.applyOptions({ handleScroll: !1 });
+        }
+        this._state = t;
+      }
+      _onDrag(t) {
+        (this._state != u.DRAGGING && this._state != u.DRAGGINGP1) ||
+          this._addDiffToPoint(this.p1, t.logical, t.price),
+          (this._state != u.DRAGGING && this._state != u.DRAGGINGP2) ||
+            this._addDiffToPoint(this.p2, t.logical, t.price);
+      }
+      _onMouseDown() {
+        this._startDragPoint = null;
+        const t = this._latestHoverPoint;
+        if (!t) return;
+        const e = this._paneViews[0]._p1,
+          i = this._paneViews[0]._p2;
+        if (!(e.x && i.x && e.y && i.y)) return this._moveToState(u.DRAGGING);
+        Math.abs(t.x - e.x) < 10 && Math.abs(t.y - e.y) < 10
+          ? this._moveToState(u.DRAGGINGP1)
+          : Math.abs(t.x - i.x) < 10 && Math.abs(t.y - i.y) < 10
+          ? this._moveToState(u.DRAGGINGP2)
+          : this._moveToState(u.DRAGGING);
+      }
+      _mouseIsOverDrawing(t, e = 4) {
+        if (!t.point) return !1;
+        const i = this._paneViews[0]._p1.x,
+          s = this._paneViews[0]._p1.y,
+          o = this._paneViews[0]._p2.x,
+          n = this._paneViews[0]._p2.y;
+        if (!(i && o && s && n)) return !1;
+        const r = t.point.x,
+          a = t.point.y;
+        if (r <= Math.min(i, o) - e || r >= Math.max(i, o) + e) return !1;
+        return (
+          Math.abs((n - s) * r - (o - i) * a + o * s - n * i) /
+            Math.sqrt((n - s) ** 2 + (o - i) ** 2) <=
+          e
+        );
+      }
+    }),
+    (t.VerticalLine = class extends p {
+      _type = 'VerticalLine';
+      _paneViews;
+      _timeAxisViews;
+      _point;
+      _callbackName;
+      _startDragPoint = null;
+      constructor(t, e, i = null) {
+        super(e),
+          (this._point = t),
+          (this._paneViews = [new G(this)]),
+          (this._callbackName = i),
+          (this._timeAxisViews = [new D(this)]);
+      }
+      updateAllViews() {
+        this._paneViews.forEach((t) => t.update()),
+          this._timeAxisViews.forEach((t) => t.update());
+      }
+      timeAxisViews() {
+        return this._timeAxisViews;
+      }
+      updatePoints(...t) {
+        for (const e of t)
+          e &&
+            (!e.time &&
+              e.logical &&
+              (e.time = this.series.dataByIndex(e.logical)?.time || null),
+            (this._point = e));
+        this.requestUpdate();
+      }
+      get points() {
+        return [this._point];
+      }
+      _moveToState(t) {
+        switch (t) {
+          case u.NONE:
+            (document.body.style.cursor = 'default'),
+              this._unsubscribe('mousedown', this._handleMouseDownInteraction);
+            break;
+          case u.HOVERING:
+            (document.body.style.cursor = 'pointer'),
+              this._unsubscribe('mouseup', this._childHandleMouseUpInteraction),
+              this._subscribe('mousedown', this._handleMouseDownInteraction),
+              this.chart.applyOptions({ handleScroll: !0 });
+            break;
+          case u.DRAGGING:
+            (document.body.style.cursor = 'grabbing'),
+              this._subscribe('mouseup', this._childHandleMouseUpInteraction),
+              this.chart.applyOptions({ handleScroll: !1 });
+        }
+        this._state = t;
+      }
+      _onDrag(t) {
+        this._addDiffToPoint(this._point, t.logical, 0), this.requestUpdate();
+      }
+      _mouseIsOverDrawing(t, e = 4) {
+        if (!t.point) return !1;
+        const i = this.chart.timeScale();
+        let s;
+        return (
+          (s = this._point.time
+            ? i.timeToCoordinate(this._point.time)
+            : i.logicalToCoordinate(this._point.logical)),
+          !!s && Math.abs(s - t.point.x) < e
+        );
+      }
+      _onMouseDown() {
+        this._startDragPoint = null;
+        if (this._latestHoverPoint) return this._moveToState(u.DRAGGING);
+      }
+      _childHandleMouseUpInteraction = () => {
+        this._handleMouseUpInteraction(),
+          this._callbackName &&
+            window.callbackFunction(
+              `${this._callbackName}_~_${this._point.price.toFixed(8)}`
+            );
+      };
+    }),
+    (t.getDrawingMenu = r),
+    (t.globalParamInit = s),
+    (t.paneStyleDefault = i),
+    (t.setCursor = (t) => {
+      t && (window.cursor = t), (document.body.style.cursor = window.cursor);
+    }),
+    t
+  );
+})({}, LightweightCharts);
